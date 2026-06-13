@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 id="login-title">Sign In</h1>
+    <p>Enter your credentials to access your account</p>
+  </div>
+
+  <form action="{{ url_for('login') }}" method="POST" id="login-form" novalidate>
+    <!-- Email Input -->
+    <div class="form-group">
+      <label for="email" class="form-label" id="label-email">Email Address</label>
+      <div class="input-wrapper">
+        <input 
+          type="email" 
+          name="email" 
+          id="email" 
+          class="form-input" 
+          placeholder="name@iitbhilai.ac.in" 
+          required 
+          autocomplete="email"
+          aria-labelledby="label-email"
+        >
+      </div>
+    </div>
+
+    <!-- Password Input -->
+    <div class="form-group">
+      <div class="form-label-row">
+        <label for="password" class="form-label" id="label-password">Password</label>
+        <a href="{{ url_for('forgot_password') }}" class="form-label-link" id="forgot-password-link">Forgot?</a>
+      </div>
+      <div class="input-wrapper">
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          autocomplete="current-password"
+          aria-labelledby="label-password"
+        >
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn-primary" id="login-submit-btn">
+      Sign In
+    </button>
+  </form>
+
+  <div class="auth-footer">
+    <p>Don't have an account? <a href="{{ url_for('signup') }}" id="signup-link">Sign Up</a></p>
+  </div>
+</div>
+{% endblock %}

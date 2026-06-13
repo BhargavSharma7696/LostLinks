@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Report Lost Item - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+<div class="report-layout">
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1 id="report-lost-title">Report Lost Item</h1>
+      <p>Provide details of the item you have lost to help others identify it</p>
+    </div>
+
+    <form action="{{ url_for('report_lost') }}" method="POST" id="report-lost-form" enctype="multipart/form-data" novalidate>
+      <!-- Title Input -->
+      <div class="form-group">
+        <label for="title" class="form-label" id="label-title">Item Title / Name</label>
+        <div class="input-wrapper">
+          <input type="text" name="title" id="title" class="form-input"
+            placeholder="e.g. Blue iPhone 13, Keys with leather holder" required aria-labelledby="label-title">
+        </div>
+      </div>
+
+      <!-- Category Selector -->
+      <div class="form-group">
+        <label for="category" class="form-label" id="label-category">Category</label>
+        <div class="input-wrapper">
+          <select name="category" id="category" class="form-input" required aria-labelledby="label-category">
+            <option value="" disabled selected>Select category</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Documents">Books & Documents</option>
+            <option value="Keys/Wallets">Keys & Wallets</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lost Time-->
+      <div class="form-group">
+        <label for="lost-time" class="form-label" id="label-lost-time">Lost Time</label>
+        <div class="input-wrapper">
+          <input type="datetime-local" name="lost-time" id="lost-time" class="form-input" required aria-labelledby="label-lost-time">
+        </div>
+      </div>
+
+      <!-- Location Lost Input -->
+      <div class="form-group">
+        <label for="location" class="form-label" id="label-location">Location Lost</label>
+        <div class="input-wrapper">
+          <input type="text" name="location" id="location" class="form-input"
+            placeholder="e.g. LHC Room 102, Library 2nd floor" required aria-labelledby="label-location">
+        </div>
+      </div>
+
+      <!-- Description Textarea -->
+      <div class="form-group">
+        <label for="description" class="form-label" id="label-description">Description & Details</label>
+        <div class="input-wrapper">
+          <textarea name="description" id="description" class="form-input"
+            placeholder="Describe unique identifiers, brand, color, approximate time lost, etc." rows="4" required
+            aria-labelledby="label-description"></textarea>
+        </div>
+      </div>
+
+      <!-- INCLUDE CAMERA INTERFACE -->
+      {% include 'camera.html' %}
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-primary" id="report-lost-submit-btn">
+        Submit Lost Report
+      </button>
+    </form>
+  </div>
+
+  <!-- Right Column: User's Reported Lost Items -->
+  <div class="items-column-container">
+    <div class="column-header">
+      <h2>Your Reported Items</h2>
+      <p>Track and view all lost reports you have submitted</p>
+    </div>
+
+    <div class="user-items-list">
+      {% if user_lost_entries %}
+        {% for entry in user_lost_entries %}
+          <div class="user-item-card">
+            <div class="user-item-header">
+              <span class="user-item-title">{{ entry.title }}</span>
+              <span class="user-item-category">{{ entry.category }}</span>
+            </div>
+            
+            <div class="user-item-details">
+              <span><b>📍 Location:</b> {{ entry.location }}</span>
+              <span><b>⏰ Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+              <span><b>Status:</b> 
+                {% if entry.status == 'resolved' %}
+                  <span style="color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 0.15rem 0.6rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">Resolved</span>
+                {% else %}
+                  <span style="color: var(--accent-cyan); background: rgba(6, 182, 212, 0.1); padding: 0.15rem 0.6rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                {% endif %}
+              </span>
+            </div>
+
+            <p class="user-item-description">{{ entry.description }}</p>
+
+            {% if entry.photourl %}
+              <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="user-item-img">
+            {% endif %}
+
+            {% if entry.status != 'resolved' %}
+              <div style="margin-top: 1rem; display: flex; justify-content: space-between;">
+                <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to mark this item as resolved?');">
+                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
+                    Mark as Resolved
+                  </button>
+                </form>
+                <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');">
+                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
+                    Delete Listing
+                  </button>
+                </form>
+                <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET">
+                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
+                    Update Listing
+                  </button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          No lost items reported by you yet.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- INCLUDE CAMERA JAVASCRIPT LOGIC -->
+{% include 'cam_script.js' %}
+{% endblock %}

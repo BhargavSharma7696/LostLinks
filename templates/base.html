@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A premium Flask and Firebase secure authentication system demo for the Hackathon application.">
+  <title>{% block title %}LostLinks{% endblock %}</title>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Page Loader Overlay -->
+  <div class="page-loader">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <div class="loader-text">🔗 LostLinks</div>
+    </div>
+  </div>
+
+  <!-- Navigation Header -->
+  <header>
+    <a href="{{ url_for('index') }}" class="logo" id="nav-logo-link">🔗 LostLinks</a>
+    <nav class="nav-links">
+      {% if session.get('user_email') %}
+        <a href="{{ url_for('profile') }}" id="nav-profile-link">Profile</a>
+        <a href="{{ url_for('dashboard') }}" id="nav-dashboard-link">Dashboard</a>
+        <a href="{{ url_for('report_lost') }}" id="nav-report-lost-link">Report Lost</a>
+        <a href="{{ url_for('report_found') }}" id="nav-report-found-link">Report Found</a>
+        <a href="{{ url_for('logout') }}" class="btn-nav-outline" id="nav-logout-btn">Log Out</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" id="nav-login-link">Log In</a>
+        <a href="{{ url_for('signup') }}" class="btn-nav-outline" id="nav-signup-btn">Sign Up</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <!-- Flash Notification Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages" id="flash-container">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}" role="alert">
+            <span>{{ message }}</span>
+            <button class="alert-close" onclick="this.parentElement.remove();" aria-label="Close Alert">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Body Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; LostLinks, 2026. Made with 💜 for IIT Bhilai.</p>
+  </footer>
+
+  <script>
+    // Automatically fade out flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('flash-container');
+      if (container) {
+        setTimeout(() => {
+          const alerts = container.querySelectorAll('.alert');
+          alerts.forEach(alert => {
+            alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => alert.remove(), 500);
+          });
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>

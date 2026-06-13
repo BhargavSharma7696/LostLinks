@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 id="signup-title">Create Account</h1>
+    <p>Sign up to start secure credentials workspace</p>
+  </div>
+
+  <form action="{{ url_for('signup') }}" method="POST" id="signup-form" novalidate>
+    <!-- Email Input -->
+    <div class="form-group">
+      <label for="email" class="form-label" id="label-email">Email Address</label>
+      <div class="input-wrapper">
+        <input 
+          type="email" 
+          name="email" 
+          id="email" 
+          class="form-input" 
+          placeholder="name@iitbhilai.ac.in" 
+          required 
+          autocomplete="email"
+          aria-labelledby="label-email"
+        >
+      </div>
+    </div>
+
+    <!-- Password Input -->
+    <div class="form-group">
+      <label for="password" class="form-label" id="label-password">Password</label>
+      <div class="input-wrapper">
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          class="form-input" 
+          placeholder="At least 8 characters" 
+          required 
+          autocomplete="new-password"
+          aria-labelledby="label-password"
+        >
+      </div>
+    </div>
+
+    <!-- Confirm Password Input -->
+    <div class="form-group">
+      <label for="confirm_password" class="form-label" id="label-confirm-password">Confirm Password</label>
+      <div class="input-wrapper">
+        <input 
+          type="password" 
+          name="confirm_password" 
+          id="confirm_password" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          autocomplete="new-password"
+          aria-labelledby="label-confirm-password"
+        >
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn-primary" id="signup-submit-btn">
+      Create Account
+    </button>
+  </form>
+
+  <div class="auth-footer">
+    <p>Already have an account? <a href="{{ url_for('login') }}" id="login-link">Sign In</a></p>
+  </div>
+</div>
+{% endblock %}

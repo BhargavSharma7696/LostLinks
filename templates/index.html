@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %} 🔗 LostLinks - Secure & Seamless Lost and Found Portal{% endblock %}
+
+{% block content %}
+<section class="landing-hero" aria-labelledby="main-heading">
+  <h1 class="landing-title" id="main-heading">Welcome to the <span>LostLinks</span> Lost and Found Portal</h1>
+  <p class="landing-desc">
+    Lost and Found is a platform that helps you find your lost items and return them to their owners. It is a secure, seamless, and lightning-fast authentication system powered by Firebase. Start creating your next hackathon project with pre-built user management, password reset capabilities, and responsive glassmorphism styles.
+  </p>
+  <div class="hero-actions">
+    {% if session.get('user_email') %}
+      <a href="{{ url_for('dashboard') }}" class="btn-primary" id="hero-dashboard-btn">Go to Dashboard</a>
+    {% else %}
+      <a href="{{ url_for('signup') }}" class="btn-primary" id="hero-signup-btn">Get Started Now</a>
+      <a href="{{ url_for('login') }}" class="btn-secondary" id="hero-login-btn">Sign In</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

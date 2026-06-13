@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Additional Information - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 id="additional-title">Complete Profile</h1>
+    <p>Please provide additional details to complete your registration</p>
+  </div>
+
+  <form action="{{ url_for('additional_info') }}" method="POST" id="additional-info-form" novalidate>
+    <!-- Display Name Input -->
+    <div class="form-group">
+      <label for="displayName" class="form-label" id="label-displayname">Display Name</label>
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          name="displayName" 
+          id="displayName" 
+          class="form-input" 
+          placeholder="Your full name" 
+          required 
+          autocomplete="name"
+          aria-labelledby="label-displayname"
+        >
+      </div>
+    </div>
+
+    <!-- Contact Number Input -->
+    <div class="form-group">
+      <label for="contactNumber" class="form-label" id="label-contactnumber">Contact Number (Optional)</label>
+      <div class="input-wrapper">
+        <input 
+          type="tel" 
+          name="contactNumber" 
+          id="contactNumber" 
+          class="form-input" 
+          placeholder="e.g. +91 98765 43210" 
+          autocomplete="tel"
+          aria-labelledby="label-contactnumber"
+        >
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn-primary" id="additional-submit-btn">
+      Complete Registration
+    </button>
+  </form>
+</div>
+{% endblock %}

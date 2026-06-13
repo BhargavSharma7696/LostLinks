@@ -1,0 +1,57 @@
+    <!-- Photo Option (Upload or Camera Capture) -->
+    <div class="form-group">
+      <label class="form-label">Add a Photo (Optional)</label>
+      
+      <!-- Tab Buttons -->
+      <div class="photo-tabs">
+        <button type="button" class="photo-tab-btn active" id="tab-upload-btn" onclick="switchTab('upload')">Upload File</button>
+        <button type="button" class="photo-tab-btn" id="tab-capture-btn" onclick="switchTab('capture')">📷 Use Camera</button>
+      </div>
+
+      <!-- Upload Content -->
+      <div class="photo-tab-content active" id="content-upload">
+        <div class="dropzone-area" id="dropzone">
+          <div class="dropzone-icon">📁</div>
+          <div class="dropzone-text">Drag & drop photo here or click to browse</div>
+          <input 
+            type="file" 
+            name="photo" 
+            id="photo-file" 
+            class="dropzone-input" 
+            accept="image/*"
+            onchange="previewUpload(this)"
+          >
+        </div>
+        <div class="image-preview-wrapper" id="upload-preview-wrapper" style="display: none;">
+          <div class="preview-title">Selected Photo Preview</div>
+          <img id="upload-preview" class="photo-preview-img" alt="Selected upload preview">
+        </div>
+      </div>
+
+      <!-- Capture Content -->
+      <div class="photo-tab-content" id="content-capture">
+        <div class="camera-container">
+          <!-- Video element for live feed -->
+          <video id="camera-feed" class="camera-feed" autoplay playsinline style="display: none;"></video>
+          <!-- Canvas for capturing -->
+          <canvas id="camera-canvas" style="display: none;"></canvas>
+          
+          <!-- Image preview for captured photo -->
+          <div class="image-preview-wrapper" id="capture-preview-wrapper" style="display: none;">
+            <div class="preview-title">Captured Photo Preview</div>
+            <img id="captured-preview-img" class="photo-preview-img" alt="Captured camera preview">
+          </div>
+
+          <!-- Hidden Input for Base64 Data -->
+          <input type="hidden" name="photoBase64" id="photo-base64">
+
+          <!-- Controls -->
+          <div class="camera-controls">
+            <button type="button" class="btn-camera-action primary" id="start-camera-btn" onclick="startCamera()">Start Camera</button>
+            <button type="button" class="btn-camera-action primary" id="capture-photo-btn" onclick="capturePhoto()" style="display: none;">Capture Photo</button>
+            <button type="button" class="btn-camera-action secondary" id="retake-photo-btn" onclick="retakePhoto()" style="display: none;">Retake</button>
+            <button type="button" class="btn-camera-action secondary" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">Turn Off Camera</button>
+          </div>
+        </div>
+      </div>
+    </div>

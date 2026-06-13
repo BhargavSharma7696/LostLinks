@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 id="profile-title">Profile</h1>
+    <p>Your profile information</p>
+  </div>
+
+  <div class="profile-info">
+    <div class="profile-field">
+      <label for="profile-displayname">Display Name : </label>
+      <span id="profile-displayname">{{ user.displayName }}</span>
+    </div>
+
+    <div class="profile-field">
+      <label for="profile-email">Email Address : </label>
+      <span id="profile-email">{{ user.email }}</span>
+    </div>
+
+    <div class="profile-field">
+      <label for="profile-memberssince">Member Since : </label>
+      <span id="profile-memberssince">{{ (" ".join(user.membersSince.split("T")))[:-6] }}</span>
+    </div>
+
+    {% if user.contactNumber %}
+    <div class="profile-field">
+      <label for="profile-contactnumber">Contact Number : </label>
+      <span id="profile-contactnumber">{{ user.contactNumber }}</span>
+    </div>
+    {% endif %}
+    <br><br><br>
+
+    <div class="hero-actions">
+      <span class="hero-action">
+        <a href="{{ url_for('update_profile') }}" class="btn-primary" id="update-profile-btn">
+          Update Profile
+        </a>
+      </span>
+      <span class="hero-action">
+        <a href="{{ url_for('dashboard') }}" class="btn-primary" id="dashboard-logout-btn">
+          Back
+        </a>
+      </span>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - 🔗 LostLinks{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <!-- Sleek Horizontal Header Banner -->
+  <div class="dashboard-header-card">
+    <div class="profile-summary-section">
+      <div class="profile-avatar-wrapper">
+        <div class="user-avatar" id="user-avatar-element">
+          {{ email[0].upper() if email else 'U' }}
+        </div>
+      </div>
+      <div class="profile-details-wrapper">
+        <h1 id="dashboard-heading">🔗 LostLinks Portal</h1>
+        <p class="profile-meta-text">
+          Name: <b>{{ user.displayName if user else 'N/A' }}</b> &nbsp;&bull;&nbsp;
+          Joined: <b>{{ " ".join(user.membersSince.split('T'))[:-6] if user and user.membersSince else 'N/A' }}</b>
+        </p>
+        <div>
+          <span class="user-email-badge" id="user-email-badge-value">{{ email }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counters Container -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Lost Items</div>
+          <div class="stat-val-red">{{ lost_unresolved_entries|length + lost_resolved_entries|length }}
+</div>
+        </div>
+        <div>
+          <div class="stat-val-green">{{ found_unresolved_entries|length + found_resolved_entries|length }}
+</div>
+          <div class="stat-label">Found Items</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Resolved</div>
+        <div class="stat-val-red">{{ lost_resolved_entries|length }}</div>
+        <span class="stat-val-green">{{ found_resolved_entries|length }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Unresolved</span>
+        <span class="stat-val-red">{{ lost_unresolved_entries|length }}</span>
+        <span class="stat-val-green">{{ found_unresolved_entries|length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Dynamic Filters Controls -->
+  <div class="filter-bar">
+    <div class="search-input-wrapper">
+      <span class="search-icon-indicator">🔍</span>
+      <input type="text" id="dashboard-search-input" class="search-input"
+        placeholder="Search items by title, details, or location..." onkeyup="filterDashboardItems()">
+    </div>
+    <select id="dashboard-category-select" class="category-select" onchange="filterDashboardItems()">
+      <option value="">All Categories</option>
+      <option value="Electronics">Electronics</option>
+      <option value="Documents">Books & Documents</option>
+      <option value="Keys/Wallets">Keys & Wallets</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Accessories">Accessories</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+
+  <!-- Main Grid layout for Lost and Found Columns -->
+  <div class="dashboard-grid">
+
+    <!-- Left Column: Lost Items -->
+    <div class="dashboard-column">
+      <div class="column-header-row">
+        <h2>Lost Items</h2>
+        <a href="{{ url_for('report_lost') }}" class="btn-primary btn-report-header" id="report-lost-btn">
+          Report Lost
+        </a>
+      </div>
+
+      <div class="items-scroll-list" id="lost-items-list">
+        {% if lost_unresolved_entries %}
+          {% for entry in lost_unresolved_entries %}
+          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}" style="text-decoration: none; color: inherit; display: flex;">
+            <div class="item-card-header">
+              <h3 class="item-card-title">{{ entry.title }}</h3>
+              <span class="item-card-category">{{ entry.category }}</span>
+            </div>
+
+            <div class="item-card-details">
+              <span><b>📍 Location Lost:</b> {{ entry.location }}</span>
+              <span><b>⏰ Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+              <span><b>👤 Contact Reporter:</b> <span style="color: var(--accent-cyan);">{{ entry.reporterid }}</span></span>
+            </div>
+
+            <p class="item-card-description">{{ entry.description }}</p>
+
+            {% if entry.photourl %}
+            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="item-card-img">
+            {% endif %}
+          </a>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state">
+          No active reports of lost items.
+        </div>
+        {% endif %}
+        <!-- Dynamic No Results Message -->
+        <div class="empty-state" id="lost-no-results" style="display: none;">
+          No matching lost items found.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Found Items -->
+    <div class="dashboard-column">
+      <div class="column-header-row">
+        <h2>Found Items</h2>
+        <a href="{{ url_for('report_found') }}" class="btn-primary btn-report-header" id="report-found-btn">
+          Report Found
+        </a>
+      </div>
+
+      <div class="items-scroll-list" id="found-items-list">
+        {% if found_unresolved_entries %}
+          {% for entry in found_unresolved_entries %}
+          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}" style="text-decoration: none; color: inherit; display: flex;">
+            <div class="item-card-header">
+              <h3 class="item-card-title">{{ entry.title }}</h3>
+              <span class="item-card-category"
+                style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0;">
+                {{ entry.category }}
+              </span>
+            </div>
+
+            <div class="item-card-details">
+              <span><b>Location Found:</b> {{ entry.location }}</span>
+              <span><b>Time Found:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+              <span><b>Contact Reporter:</b> <span style="color: var(--accent-cyan);">{{ entry.reporterid }}</span></span>
+            </div>
+
+            <p class="item-card-description">{{ entry.description }}</p>
+
+            {% if entry.photourl %}
+            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="item-card-img">
+            {% endif %}
+          </a>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state">
+          No active reports of found items.
+        </div>
+        {% endif %}
+        <!-- Dynamic No Results Message -->
+        <div class="empty-state" id="found-no-results" style="display: none;">
+          No matching found items found.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Resolved Queries Section -->
+  <div class="dashboard-column resolved-section" style="width: 100%; margin-top: 1rem;">
+    <div class="column-header-row">
+      <h2>Resolved Queries</h2>
+      <span class="item-card-category"
+        style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">
+        History
+      </span>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 1.5rem; gap: 2rem;">
+      <!-- Lost Resolved -->
+      <div class="resolved-column-wrapper">
+        <h3
+          style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+          Resolved Lost Items</h3>
+        <div class="items-scroll-list" id="lost-resolved-list" style="max-height: 40vh;">
+          {% if lost_resolved_entries %}
+          {% for entry in lost_resolved_entries %}
+          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}"
+            style="opacity: 0.65; border-color: rgba(255,255,255,0.04); text-decoration: none; color: inherit; display: flex;">
+            <div class="item-card-header">
+              <h3 class="item-card-title" style="text-decoration: line-through; color: var(--text-secondary);">{{
+                entry.title }}</h3>
+              <span class="item-card-category"
+                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Resolved</span>
+            </div>
+            <div class="item-card-details">
+              <span><b>Location:</b> {{ entry.location }}</span>
+              <span><b>Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+            </div>
+            <p class="item-card-description">{{ entry.description }}</p>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div class="empty-state" style="padding: 2rem 1rem;">No resolved lost items.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Found Resolved -->
+      <div class="resolved-column-wrapper">
+        <h3
+          style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+          Resolved Found Items</h3>
+        <div class="items-scroll-list" id="found-resolved-list" style="max-height: 40vh;">
+          {% if found_resolved_entries %}
+          {% for entry in found_resolved_entries %}
+          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}"
+            style="opacity: 0.65; border-color: rgba(255,255,255,0.04); text-decoration: none; color: inherit; display: flex;">
+            <div class="item-card-header">
+              <h3 class="item-card-title" style="text-decoration: line-through; color: var(--text-secondary);">{{
+                entry.title }}</h3>
+              <span class="item-card-category"
+                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Resolved</span>
+            </div>
+            <div class="item-card-details">
+              <span><b>Location:</b> {{ entry.location }}</span>
+              <span><b>Time Found:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+            </div>
+            <p class="item-card-description">{{ entry.description }}</p>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div class="empty-state" style="padding: 2rem 1rem;">No resolved found items.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dynamic Instant Filtering Javascript -->
+<script>
+  function filterDashboardItems() {
+    const searchVal = document.getElementById('dashboard-search-input').value.toLowerCase().trim();
+    const categoryVal = document.getElementById('dashboard-category-select').value;
+
+    filterColumn('lost-items-list', 'lost-no-results', searchVal, categoryVal);
+    filterColumn('found-items-list', 'found-no-results', searchVal, categoryVal);
+    filterColumn('lost-resolved-list', null, searchVal, categoryVal);
+    filterColumn('found-resolved-list', null, searchVal, categoryVal);
+  }
+
+  function filterColumn(listId, noResultsId, query, categoryFilter) {
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    const cards = container.getElementsByClassName('item-dashboard-card');
+    let visibleCount = 0;
+    let totalCards = cards.length;
+
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+
+      // Match category
+      const cardCategory = card.getAttribute('data-category') || '';
+      const matchesCategory = !categoryFilter || cardCategory === categoryFilter;
+
+      // Match text query
+      const title = card.querySelector('.item-card-title').textContent.toLowerCase();
+      const description = card.querySelector('.item-card-description').textContent.toLowerCase();
+      const detailsText = card.querySelector('.item-card-details').textContent.toLowerCase();
+
+      const matchesText = !query ||
+        title.includes(query) ||
+        description.includes(query) ||
+        detailsText.includes(query);
+
+      if (matchesCategory && matchesText) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    }
+
+    // Handle no results visibility
+    const noResultsMsg = document.getElementById(noResultsId);
+    if (noResultsMsg) {
+      if (visibleCount === 0 && totalCards > 0) {
+        noResultsMsg.style.display = 'block';
+      } else {
+        noResultsMsg.style.display = 'none';
+      }
+    }
+  }
+</script>
+{% endblock %}

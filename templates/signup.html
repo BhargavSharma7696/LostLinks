@@ -3,8 +3,22 @@
 {% block title %}Create Account - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-[70vh]">
-  <div class="bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-md border border-slate-100">
+<div class="relative w-full flex items-center justify-center min-h-[70vh] rounded-[32px]">
+  <!-- Decorative background text -->
+  <div class="absolute inset-0 hidden sm:block pointer-events-none select-none z-0 overflow-hidden rounded-[32px]">
+    <div class="absolute top-1/2 right-[calc(50%+14rem)] lg:right-[calc(50%+16rem)] -translate-y-1/2">
+      <span class="text-[6vw] lg:text-[7vw] xl:text-[7rem] font-black text-slate-900/[0.06] tracking-tighter whitespace-nowrap">
+        LOST
+      </span>
+    </div>
+    <div class="absolute top-1/2 left-[calc(50%+14rem)] lg:left-[calc(50%+16rem)] -translate-y-1/2">
+      <span class="text-[6vw] lg:text-[7vw] xl:text-[7rem] font-black text-slate-900/[0.06] tracking-tighter whitespace-nowrap">
+        LINKS
+      </span>
+    </div>
+  </div>
+
+  <div class="animate-fade-in-up bg-white/80 backdrop-blur-2xl rounded-[24px] shadow-2xl shadow-slate-200/50 p-8 md:p-12 w-full max-w-md border border-white/50 relative z-10">
     <div class="text-center mb-8">
       <h1 class="text-3xl font-bold text-slate-800 mb-2" id="signup-title">Create Account</h1>
       <p class="text-slate-500 font-medium">Sign up to start secure credentials workspace</p>

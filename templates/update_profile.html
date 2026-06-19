@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="flex items-center justify-center min-h-[70vh]">
-  <div class="bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-lg border border-slate-100">
+  <div class="animate-fade-in-up bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-lg border border-slate-100">
     
     <div class="mb-8 text-center border-b border-slate-100 pb-6">
       <h1 class="text-3xl font-bold text-slate-800 mb-2" id="profile-title">Update Profile</h1>
@@ -52,11 +52,11 @@
         >
       </div>
 
-      <div class="flex gap-4 mt-8 pt-4">
-        <button type="submit" class="flex-1 bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition">
+      <div class="flex flex-col sm:flex-row gap-4 mt-8 pt-4 w-full">
+        <button type="submit" class="flex-1 flex items-center justify-center text-center bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition">
           Save Changes
         </button>
-        <a href="{{ url_for('profile') }}" class="flex-1 text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition">
+        <a href="{{ url_for('profile') }}" class="flex-1 flex items-center justify-center text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition">
           Cancel
         </a>
       </div>

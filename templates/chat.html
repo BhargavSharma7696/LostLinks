@@ -14,7 +14,7 @@
       
       {% if item.photourl %}
       <div class="w-full rounded-[16px] overflow-hidden bg-slate-200 border border-slate-300 shadow-sm shrink-0">
-        <img src="{{ item.photourl }}" alt="{{ item.title }}" class="w-full object-cover max-h-64">
+        <img src="{{ item.photourl }}" alt="{{ item.title }}" class="w-full object-cover max-h-64 cursor-pointer transition duration-300 hover:scale-105" onclick="openImageModal('{{ item.photourl }}')">
       </div>
       {% endif %}
       
@@ -121,4 +121,32 @@
     }
   });
 </script>
+
+<div
+  id="image-modal"
+  class="hidden fixed inset-0 bg-black/80 z-50"
+  style="background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);"
+  onclick="closeImageModal()"
+>
+  <div class="w-full h-full flex items-center justify-center p-8">
+    <img
+      id="modal-image"
+      style="max-width: 60vw; max-height: 60vh;"
+      class="object-contain rounded-2xl shadow-2xl border-4 border-white"
+      onclick="event.stopPropagation()"
+      alt="Expanded image">
+  </div>
+</div>
+
+<script>
+function openImageModal(src) {
+    document.getElementById('modal-image').src = src;
+    document.getElementById('image-modal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').classList.add('hidden');
+}
+</script>
+
 {% endblock %}

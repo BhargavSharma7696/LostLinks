@@ -18,23 +18,25 @@
   }
 
   // Upload Preview Logic
-  function previewUpload(input) {
+ function previewUpload(input) {
+    document.getElementById('photo-base64').value = '';
+
     const file = input.files[0];
     const previewWrapper = document.getElementById('upload-preview-wrapper');
     const previewImg = document.getElementById('upload-preview');
 
     if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImg.src = e.target.result;
-        previewWrapper.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewWrapper.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
     } else {
-      previewImg.src = '';
-      previewWrapper.style.display = 'none';
+        previewImg.src = '';
+        previewWrapper.style.display = 'none';
     }
-  }
+}
 
   // Camera Capture Logic
   async function startCamera() {
@@ -86,7 +88,7 @@
     stopBtn.style.display = 'none';
   }
 
-  function capturePhoto() {
+function capturePhoto() {
     const video = document.getElementById('camera-feed');
     const canvas = document.getElementById('camera-canvas');
     const previewWrapper = document.getElementById('capture-preview-wrapper');
@@ -107,6 +109,10 @@
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL('image/png');
+
+    // Clear uploaded file if one was previously selected
+    document.getElementById('photo-file').value = '';
+
     base64Input.value = dataUrl;
     previewImg.src = dataUrl;
 
@@ -116,7 +122,7 @@
     stopCamera();
     captureBtn.style.display = 'none';
     stopBtn.style.display = 'none';
-  }
+}
 
   function retakePhoto() {
     startCamera();

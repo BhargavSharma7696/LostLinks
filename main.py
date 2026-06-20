@@ -431,6 +431,17 @@ def report_found():
         photo_file = request.files.get('photo')
         photo_base64 = request.form.get('photoBase64')
 
+        has_file = photo_file and photo_file.filename != ""
+        has_camera = photo_base64 and photo_base64.strip() != ""
+
+        if not has_file and not has_camera:
+            flash("Please upload a photo or capture one using the camera.", "error")
+            return render_template(
+                'report-found.html',
+                email=user_email,
+                user_found_entries=user_found_entries
+    )
+
         if not title or not title.strip():
             flash("Title is required.", "error")
             return render_template('report-found.html', email=user_email, user_found_entries=user_found_entries)

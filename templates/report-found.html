@@ -17,7 +17,7 @@
         
         <!-- Title Input -->
         <div>
-          <label for="title" class="block text-sm font-semibold text-slate-700 mb-2" id="label-title">Item Title / Name</label>
+          <label for="title" class="block text-sm font-semibold text-slate-700 mb-2" id="label-title">Item Title / Name<span style="color:red">*</span></label>
           <input type="text" name="title" id="title" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="e.g. Gold watch, Casio Calculator" required aria-labelledby="label-title">
         </div>
@@ -26,7 +26,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Category Selector -->
           <div>
-            <label for="category" class="block text-sm font-semibold text-slate-700 mb-2" id="label-category">Category</label>
+            <label for="category" class="block text-sm font-semibold text-slate-700 mb-2" id="label-category">Category<span style="color:red">*</span></label>
             <select name="category" id="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" required aria-labelledby="label-category">
               <option value="" disabled selected>Select category</option>
               <option value="Electronics">Electronics</option>
@@ -40,27 +40,29 @@
 
           <!-- Found Time-->
           <div>
-            <label for="lost-time" class="block text-sm font-semibold text-slate-700 mb-2" id="label-lost-time">Found Time</label>
+            <label for="lost-time" class="block text-sm font-semibold text-slate-700 mb-2" id="label-lost-time">Found Time<span style="color:red">*</span></label>
             <input type="datetime-local" name="lost-time" id="lost-time" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" required aria-labelledby="label-lost-time">
           </div>
         </div>
 
         <!-- Location Found Input -->
         <div>
-          <label for="location" class="block text-sm font-semibold text-slate-700 mb-2" id="label-location">Location Found</label>
+          <label for="location" class="block text-sm font-semibold text-slate-700 mb-2" id="label-location">Location Found<span style="color:red">*</span></label>
           <input type="text" name="location" id="location" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="e.g. Audi corridor, Hostel C entrance" required aria-labelledby="label-location">
         </div>
 
         <!-- Description Textarea -->
         <div>
-          <label for="description" class="block text-sm font-semibold text-slate-700 mb-2" id="label-description">Description & Details</label>
+          <label for="description" class="block text-sm font-semibold text-slate-700 mb-2" id="label-description">Description & Details<span style="color:red">*</span></label>
           <textarea name="description" id="description" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="Describe where it is kept (e.g. left with guard room), brand, color, etc." rows="4" required
             aria-labelledby="label-description"></textarea>
         </div>
 
         <!-- INCLUDE CAMERA INTERFACE -->
+        <input type="hidden" id="photo-required" value="true">
+        {% set photo_required = true %}
         {% include 'camera.html' %}
 
         <!-- Submit Button -->
@@ -144,3 +146,19 @@
 <!-- INCLUDE CAMERA JAVASCRIPT LOGIC -->
 {% include 'cam_script.js' %}
 {% endblock %}
+
+<script>
+document.getElementById('report-found-form').addEventListener('submit', function(e) {
+
+    const fileUploaded =
+        document.getElementById('photo-file').files.length > 0;
+
+    const cameraPhoto =
+        document.getElementById('photo-base64').value.trim() !== '';
+
+    if (!fileUploaded && !cameraPhoto) {
+        e.preventDefault();
+        alert('Please upload or capture a photo.');
+    }
+});
+</script>

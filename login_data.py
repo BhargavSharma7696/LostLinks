@@ -8,6 +8,8 @@ load_dotenv()
 
 super_secret = os.getenv("SECRET_KEY", os.urandom(24))
 
+sec = os.getenv("admin_email")
+
 class loginInput(BaseModel):
     email: str = Field(..., description="Email address")
     password: str = Field(..., description="Password")
@@ -15,9 +17,7 @@ class loginInput(BaseModel):
     @field_validator('email')
     @classmethod
     def email_validator(cls, v):
-        if v == os.getenv("admin_email"):
-            return v
-        if '@iitbhilai.ac.in' not in v:
+        if '@iitbhilai.ac.in' not in v and v not in sec:
             raise ValueError("Email must be an IITBhilai associated email")
         return v
 
@@ -36,8 +36,6 @@ class signupInput(BaseModel):
     @field_validator('email')
     @classmethod
     def email_validator(cls, v):
-        if v == os.getenv("admin_email"):
-            return v
         if '@iitbhilai.ac.in' not in v:
             raise ValueError("Email must be an IITBhilai associated email")
         return v

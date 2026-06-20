@@ -3,40 +3,43 @@
 {% block title %}Verify Email - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-  <div class="auth-header">
-    <div class="verification-badge">
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="verification-icon">
+<div class="flex items-center justify-center min-h-[70vh]">
+  <div class="bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-lg border border-slate-100 text-center">
+    <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect width="20" height="16" x="2" y="4" rx="2"></rect>
         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
       </svg>
     </div>
-    <h1 id="verify-title">Verify Your Email</h1>
-    <p>We've sent a verification link to your registered email address:</p>
-    <div class="user-email-badge" id="verification-email">{{ email }}</div>
+    
+    <h1 class="text-3xl font-bold text-slate-800 mb-4" id="verify-title">Verify Your Email</h1>
+    <p class="text-slate-500 font-medium mb-2">We've sent a verification link to your registered email address:</p>
+    <div class="inline-block bg-slate-100 text-slate-800 font-semibold px-4 py-2 rounded-xl mb-6" id="verification-email">{{ email }}</div>
+
+    <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8 text-blue-800 text-sm font-medium">
+      <p>Please check your inbox <b>(including the spam/junk folder)</b> and click the verification link inside the email to activate your account and continue.</p>
+    </div>
+
+    <form action="{{ url_for('verify_email') }}" method="POST" id="verify-status-form" class="mb-4">
+      <input type="hidden" name="action" value="check">
+      <button type="submit" class="w-full bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-4 shadow-md shadow-indigo-200 transition" id="btn-check-verification">
+        I Have Verified My Email
+      </button>
+    </form>
+
+    <form action="{{ url_for('verify_email') }}" method="POST" id="resend-form" class="mb-6">
+      <input type="hidden" name="action" value="resend">
+      <p class="text-slate-500 font-medium text-sm">Didn't receive the email? 
+        <button type="submit" class="text-primary hover:text-indigo-700 font-bold transition underline" id="btn-resend-verification">Resend Verification Link</button>
+      </p>
+    </form>
+
+    <form action="{{ url_for('verify_email') }}" method="POST" id="revoke-form">
+      <input type="hidden" name="action" value="revoke">
+      <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-xl px-4 py-3 transition border border-rose-200" id="btn-revoke-verification">
+        Cancel & Start Over
+      </button>
+    </form>
   </div>
-
-  <div class="verification-instructions" style="margin-bottom: 2rem; text-align: center; color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
-    <p>Please check your inbox <b>(including the spam/junk folder)</b> and click the verification link inside the email to activate your account and continue.</p>
-  </div>
-
-  <form action="{{ url_for('verify_email') }}" method="POST" id="verify-status-form">
-    <input type="hidden" name="action" value="check">
-    <button type="submit" class="btn-primary" id="btn-check-verification">
-      I Have Verified My Email
-    </button>
-  </form>
-
-  <form action="{{ url_for('verify_email') }}" method="POST" id="resend-form" class="auth-footer" style="margin-top: 2rem;">
-    <input type="hidden" name="action" value="resend">
-    <p>Didn't receive the email? <button type="submit" class="btn-link-action" id="btn-resend-verification" style="background: none; border: none; color: var(--accent-cyan); font-weight: 600; cursor: pointer; font-family: inherit; font-size: inherit; transition: var(--transition-fast);">Resend Verification Link</button></p>
-  </form>
-
-  <form action="{{ url_for('verify_email') }}" method="POST" id="revoke-form" style="margin-top: 1.5rem;">
-    <input type="hidden" name="action" value="revoke">
-    <button type="submit" class="btn-secondary btn-danger" id="btn-revoke-verification" style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 0.9rem;">
-      Cancel & Start Over
-    </button>
-  </form>
 </div>
 {% endblock %}

@@ -3,105 +3,112 @@
 {% block title %}Discussion - {{ item.title }}{% endblock %}
 
 {% block content %}
-<div class="chat-container-wrapper" style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 80vh; padding: 1.5rem 0;">
-  <div class="modal-content-container" style="height: 80vh; max-width: 1050px; width: 95%;">
-    <a class="modal-close-btn" href="{{ url_for('dashboard') }}" style="text-decoration: none;" title="Go back to Dashboard">&times;</a>
+<div class="flex items-center justify-center min-h-[80vh] py-6">
+  <div class="animate-fade-in-up bg-white rounded-[24px] shadow-xl border border-slate-100 flex flex-col md:flex-row w-full max-w-6xl h-auto md:h-[85vh] overflow-hidden">
     
-    <!-- Left Column: Item Details -->
-    <div class="modal-details-col" style="overflow-y: auto; flex: 0 0 35%; border-right: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">{{ item.title }}</h2>
+    <!-- Left Column: Item Details Bento Box -->
+    <div class="w-full md:w-2/5 lg:w-1/3 bg-slate-50 border-r border-slate-200 overflow-y-auto p-6 flex flex-col gap-4 relative">
+      <a href="{{ url_for('dashboard') }}" class="absolute top-4 right-4 bg-white hover:bg-slate-100 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition" title="Go back to Dashboard">&times;</a>
+      
+      <h2 class="text-2xl font-bold text-slate-800 pr-8 leading-tight mb-2">{{ item.title }}</h2>
       
       {% if item.photourl %}
-      <div class="modal-item-photo-wrapper" style="width: 100%; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.2);">
-        <img src="{{ item.photourl }}" alt="{{ item.title }}" class="modal-item-photo" style="width: 100%; object-fit: cover; max-height: 250px; display: block;">
+      <div class="w-full rounded-[16px] overflow-hidden bg-slate-200 border border-slate-300 shadow-sm shrink-0">
+        <img src="{{ item.photourl }}" alt="{{ item.title }}" class="w-full object-cover max-h-64">
       </div>
       {% endif %}
       
-      <div class="modal-detail-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-        <b style="color: var(--text-secondary);">Category:</b>
-        <span>{{ item.category }}</span>
+      <div class="flex flex-col gap-3 mt-2">
+        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+          <span class="font-bold text-slate-500">Category</span>
+          <span class="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">{{ item.category }}</span>
+        </div>
+        
+        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+          <span class="font-bold text-slate-500">📍 Location</span>
+          <button onclick="showLocationMap(event, '{{ item.location }}')" class="font-semibold text-primary hover:text-indigo-800 hover:underline text-right max-w-[60%] select-all focus:outline-none cursor-pointer transition">
+            {{ item.location }}
+          </button>
+        </div>
+        
+        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+          <span class="font-bold text-slate-500">⏰ Date & Time</span>
+          <span class="font-semibold text-slate-800 text-right max-w-[60%]">{{ " ".join(item.losttime.split("T")) if item.losttime else "N/A" }}</span>
+        </div>
+        
+        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+          <span class="font-bold text-slate-500">👤 Reporter</span>
+          <span class="font-semibold text-indigo-600 break-all text-right max-w-[60%]">{{ item.reporterid }}</span>
+        </div>
+        
+        <div class="flex justify-between items-start text-sm pb-2">
+          <span class="font-bold text-slate-500">Status</span>
+          <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+            {{ item.status }}
+          </span>
+        </div>
       </div>
       
-      <div class="modal-detail-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-        <b style="color: var(--text-secondary);">📍 Location:</b>
-        <span>{{ item.location }}</span>
-      </div>
-      
-      <div class="modal-detail-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-        <b style="color: var(--text-secondary);">⏰ Date & Time:</b>
-        <span>{{ " ".join(item.losttime.split("T")) if item.losttime else "N/A" }}</span>
-      </div>
-      
-      <div class="modal-detail-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-        <b style="color: var(--text-secondary);">👤 Reporter:</b>
-        <span style="word-break: break-all; max-width: 60%; text-align: right;">{{ item.reporterid }}</span>
-      </div>
-      
-      <div class="modal-detail-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-        <b style="color: var(--text-secondary);">Status:</b>
-        <span class="item-card-category" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #c084fc; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; text-transform: uppercase;">
-          {{ item.status }}
-        </span>
-      </div>
-      
-      <div class="modal-detail-description" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-secondary); background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); margin-top: 0.5rem;">
-        <b style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Description:</b>
-        {{ item.description }}
+      <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm mt-2">
+        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Description</span>
+        <p class="text-slate-700 text-sm leading-relaxed">{{ item.description }}</p>
       </div>
     </div>
     
-    <!-- Right Column: Universal Chat -->
-    <div class="modal-chat-col" style="flex: 1; display: flex; flex-direction: column; background: rgba(10, 15, 30, 0.35);">
-      <div class="chat-header" style="padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.25rem;">
-        <h3 style="font-size: 1.15rem; color: var(--text-primary); font-weight: 600;">Public Discussion Board</h3>
-        <span style="font-size: 0.8rem; color: var(--text-secondary);">Ask questions, coordinate recovery, or leave comments about this item</span>
+    <!-- Right Column: Universal Chat Area -->
+    <div class="w-full md:w-3/5 lg:w-2/3 flex flex-col bg-slate-900 relative min-h-[60vh] md:min-h-0">
+      <!-- Chat Header -->
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/90 backdrop-blur-sm z-10">
+        <h3 class="text-lg font-bold text-white">Public Discussion Board</h3>
+        <p class="text-xs text-slate-400 font-medium">Ask questions, coordinate recovery, or leave comments</p>
       </div>
       
       <!-- Message Stream Log -->
-      <div class="chat-messages-log" id="chat-messages-log" style="flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
+      <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4" id="chat-messages-log">
         {% if messages %}
           {% for msg in messages %}
             {% if msg.sender == email %}
-              <div class="msg-bubble-wrapper sent">
-                <div class="msg-bubble">
-                  <span class="msg-text">{{ msg.message }}</span>
-                  <span class="msg-meta">{{ msg.time.split('T')[1][:5] if (msg.time and 'T' in msg.time) else (msg.time[:16] if msg.time else '') }}</span>
+              <div class="flex w-full justify-end">
+                <div class="max-w-[75%] bg-indigo-600 text-white rounded-[20px] rounded-br-sm px-4 py-3 shadow-sm relative group">
+                  <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ msg.message }}</p>
+                  <span class="text-[10px] text-indigo-200 block text-right mt-1 font-medium">{{ msg.time.split('T')[1][:5] if (msg.time and 'T' in msg.time) else (msg.time[:16] if msg.time else '') }}</span>
                 </div>
               </div>
             {% else %}
-              <div class="msg-bubble-wrapper received" style="flex-direction: column; align-items: flex-start;">
-                <span style="font-size: 0.72rem; color: var(--accent-cyan); margin-bottom: 0.2rem; margin-left: 0.4rem; font-weight: 500;">
-                  {{ msg.sender }}
-                </span>
-                <div class="msg-bubble">
-                  <span class="msg-text">{{ msg.message }}</span>
-                  <span class="msg-meta">{{ msg.time.split('T')[1][:5] if (msg.time and 'T' in msg.time) else (msg.time[:16] if msg.time else '') }}</span>
+              <div class="flex w-full justify-start flex-col">
+                <span class="text-[11px] font-bold text-indigo-400 ml-2 mb-1">{{ msg.sender }}</span>
+                <div class="max-w-[75%] bg-slate-800 text-slate-100 border border-slate-700 rounded-[20px] rounded-bl-sm px-4 py-3 shadow-sm">
+                  <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ msg.message }}</p>
+                  <span class="text-[10px] text-slate-500 block text-right mt-1 font-medium">{{ msg.time.split('T')[1][:5] if (msg.time and 'T' in msg.time) else (msg.time[:16] if msg.time else '') }}</span>
                 </div>
               </div>
             {% endif %}
           {% endfor %}
         {% else %}
-          <div class="empty-state" style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary); margin: auto;">
-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
-            No messages posted yet. Be the first to start the discussion!
+          <div class="m-auto text-center p-8 bg-slate-800/50 rounded-3xl border border-slate-700/50 max-w-sm">
+            <div class="text-4xl mb-3">💬</div>
+            <p class="text-slate-400 text-sm font-medium leading-relaxed">No messages posted yet. Be the first to start the discussion!</p>
           </div>
         {% endif %}
       </div>
       
       <!-- Chat Input Send Area -->
-      <form action="{{ url_for('send_chat') }}" method="POST" class="chat-input-bar">
-        <input type="hidden" name="item_id" value="{{ item.id }}">
-        <input 
-          type="text" 
-          name="message" 
-          id="chat-message-input" 
-          class="chat-input-field" 
-          placeholder="Write a public message..." 
-          required
-          autocomplete="off"
-          style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary); padding: 0.75rem 1rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
-        >
-        <button type="submit" class="btn-primary btn-chat-send" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600;">Send</button>
+      <form action="{{ url_for('send_chat') }}" method="POST" class="p-4 bg-slate-900 border-t border-slate-800">
+        <div class="flex gap-2">
+          <input type="hidden" name="item_id" value="{{ item.id }}">
+          <input 
+            type="text" 
+            name="message" 
+            id="chat-message-input" 
+            class="flex-1 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder-slate-500" 
+            placeholder="Write a public message..." 
+            required
+            autocomplete="off"
+          >
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl px-6 py-3 transition shadow-md shadow-indigo-900/50">
+            Send
+          </button>
+        </div>
       </form>
     </div>
   </div>

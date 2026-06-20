@@ -531,7 +531,7 @@ def update_item(item_id):
                 category=category,
                 location=location,
                 description=description,
-                losttime=losttime
+                losttime=losttime,
             )
             flash("Item updated successfully!", "success")
             if item.get('type') == 'found':

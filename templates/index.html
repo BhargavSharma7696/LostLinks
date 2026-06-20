@@ -3,18 +3,63 @@
 {% block title %} 🔗 LostLinks - Secure & Seamless Lost and Found Portal{% endblock %}
 
 {% block content %}
-<section class="landing-hero" aria-labelledby="main-heading">
-  <h1 class="landing-title" id="main-heading">Welcome to the <span>LostLinks</span> Lost and Found Portal</h1>
-  <p class="landing-desc">
-    Lost and Found is a platform that helps you find your lost items and return them to their owners. It is a secure, seamless, and lightning-fast authentication system powered by Firebase. Start creating your next hackathon project with pre-built user management, password reset capabilities, and responsive glassmorphism styles.
-  </p>
-  <div class="hero-actions">
-    {% if session.get('user_email') %}
-      <a href="{{ url_for('dashboard') }}" class="btn-primary" id="hero-dashboard-btn">Go to Dashboard</a>
-    {% else %}
-      <a href="{{ url_for('signup') }}" class="btn-primary" id="hero-signup-btn">Get Started Now</a>
-      <a href="{{ url_for('login') }}" class="btn-secondary" id="hero-login-btn">Sign In</a>
-    {% endif %}
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto" aria-labelledby="main-heading">
+
+  <!-- Main Hero Bento Box -->
+  <div
+    class="col-span-1 md:col-span-2 lg:col-span-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[24px] p-10 flex flex-col justify-center text-white shadow-lg hover:scale-105 hover:-translate-y-2 transition-all duration-300 ease-in-out">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight" id="main-heading">Welcome to the <span
+        class="text-indigo-100">LostLinks</span> Lost and Found Portal</h1>
+    <p class="text-lg md:text-xl text-indigo-50 mb-8 max-w-2xl">
+      A secure, seamless, and lightning-fast platform that helps you find your lost items and return them to their
+      owners within the IIT Bhilai campus.
+    </p>
+    <div class="flex flex-wrap gap-4">
+      {% if session.get('user_email') %}
+      <a href="{{ url_for('dashboard') }}"
+        class="bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-3 rounded-xl font-bold shadow-md transition"
+        id="hero-dashboard-btn">Go to Dashboard</a>
+      {% else %}
+      <a href="{{ url_for('signup') }}"
+        class="bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-3 rounded-xl font-bold shadow-md transition"
+        id="hero-signup-btn">Get Started Now</a>
+      <a href="{{ url_for('login') }}"
+        class="bg-indigo-700/50 hover:bg-indigo-700 text-white border border-indigo-400 px-6 py-3 rounded-xl font-medium transition backdrop-blur-sm"
+        id="hero-login-btn">Sign In</a>
+      {% endif %}
+    </div>
   </div>
+
+  <!-- Stats/Info Bento Box 1 -->
+  <div
+    class="bg-white rounded-[24px] p-8 flex flex-col justify-center items-center text-center shadow-sm border border-slate-100 hover:scale-105 hover:-translate-y-2 transition-all duration-300 ease-in-out">
+    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-4">
+      🔍
+    </div>
+    <h3 class="text-xl font-bold text-slate-800 mb-2">Find Items Fast</h3>
+    <p class="text-slate-500 font-medium">Browse reported found items with high-quality images and specific locations.
+    </p>
+  </div>
+
+  <!-- Stats/Info Bento Box 2 -->
+  <div
+    class="bg-white rounded-[24px] p-8 flex flex-col justify-center items-center text-center shadow-sm border border-slate-100 hover:scale-105 hover:-translate-y-2 transition-all duration-300 ease-in-out">
+    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4">
+      🔒
+    </div>
+    <h3 class="text-xl font-bold text-slate-800 mb-2">Secure Platform</h3>
+    <p class="text-slate-500 font-medium">Powered by Firebase Auth. Only verified IIT Bhilai members can access the
+      portal.</p>
+  </div>
+
+  <!-- Stats/Info Bento Box 3 -->
+  <div
+    class="col-span-1 md:col-span-2 lg:col-span-2 bg-slate-900 rounded-[24px] p-8 flex flex-col justify-center text-left shadow-lg overflow-hidden relative hover:scale-105 hover:-translate-y-2 transition-all duration-300 ease-in-out">
+    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">💬</div>
+    <h3 class="text-2xl font-bold text-white mb-2 relative z-10">Integrated Chat</h3>
+    <p class="text-slate-400 font-medium max-w-lg relative z-10">Found something? Securely chat with the owner without
+      sharing your personal phone number or email directly.</p>
+  </div>
+
 </section>
 {% endblock %}

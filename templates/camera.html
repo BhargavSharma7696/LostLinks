@@ -1,57 +1,85 @@
-    <!-- Photo Option (Upload or Camera Capture) -->
-    <div class="form-group">
-      <label class="form-label">Add a Photo (Optional)</label>
+<!-- Photo Option (Upload or Camera Capture) -->
+<div class="mb-4">
+  <label class="block text-sm font-semibold text-slate-700 mb-2">Add a Photo (Optional)</label>
+  
+  <!-- Tab Buttons -->
+  <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl w-max">
+    <button type="button" class="px-4 py-2 text-sm font-bold rounded-lg transition photo-tab-btn bg-white shadow text-primary" id="tab-upload-btn" onclick="switchTab('upload')">🗂 Upload File</button>
+    <button type="button" class="px-4 py-2 text-sm font-bold rounded-lg transition text-slate-500 hover:text-slate-800 photo-tab-btn" id="tab-capture-btn" onclick="switchTab('capture')">📷 Use Camera</button>
+  </div>
+
+  <!-- Upload Content -->
+  <div class="photo-tab-content block" id="content-upload">
+    <div class="relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-8 text-center hover:bg-slate-100 transition cursor-pointer" id="dropzone" onclick="document.getElementById('photo-file').click()">
+      <div class="text-4xl mb-2">📁</div>
+      <div class="text-sm font-medium text-slate-500">Drag & drop photo here or click to browse</div>
+      <input 
+        type="file" 
+        name="photo" 
+        id="photo-file" 
+        class="hidden" 
+        accept="image/*"
+        onchange="previewUpload(this)"
+      >
+    </div>
+    <div class="mt-4" id="upload-preview-wrapper" style="display: none;">
+      <div class="text-sm font-bold text-slate-700 mb-2">Selected Photo Preview</div>
+      <img id="upload-preview" class="w-full max-h-64 object-contain bg-slate-100 rounded-xl border border-slate-200" alt="Selected upload preview">
+    </div>
+  </div>
+
+  <!-- Capture Content -->
+  <div class="photo-tab-content hidden" id="content-capture">
+    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+      <!-- Video element for live feed -->
+      <video id="camera-feed" class="w-full rounded-xl bg-black mb-4 max-h-64 object-cover" autoplay playsinline style="display: none;"></video>
+      <!-- Canvas for capturing -->
+      <canvas id="camera-canvas" style="display: none;"></canvas>
       
-      <!-- Tab Buttons -->
-      <div class="photo-tabs">
-        <button type="button" class="photo-tab-btn active" id="tab-upload-btn" onclick="switchTab('upload')">Upload File</button>
-        <button type="button" class="photo-tab-btn" id="tab-capture-btn" onclick="switchTab('capture')">📷 Use Camera</button>
+      <!-- Image preview for captured photo -->
+      <div class="mb-4" id="capture-preview-wrapper" style="display: none;">
+        <div class="text-sm font-bold text-slate-700 mb-2">Captured Photo Preview</div>
+        <img id="captured-preview-img" class="w-full max-h-64 object-contain bg-slate-100 rounded-xl border border-slate-200" alt="Captured camera preview">
       </div>
 
-      <!-- Upload Content -->
-      <div class="photo-tab-content active" id="content-upload">
-        <div class="dropzone-area" id="dropzone">
-          <div class="dropzone-icon">📁</div>
-          <div class="dropzone-text">Drag & drop photo here or click to browse</div>
-          <input 
-            type="file" 
-            name="photo" 
-            id="photo-file" 
-            class="dropzone-input" 
-            accept="image/*"
-            onchange="previewUpload(this)"
-          >
-        </div>
-        <div class="image-preview-wrapper" id="upload-preview-wrapper" style="display: none;">
-          <div class="preview-title">Selected Photo Preview</div>
-          <img id="upload-preview" class="photo-preview-img" alt="Selected upload preview">
-        </div>
-      </div>
+      <!-- Hidden Input for Base64 Data -->
+      <input type="hidden" name="photoBase64" id="photo-base64">
 
-      <!-- Capture Content -->
-      <div class="photo-tab-content" id="content-capture">
-        <div class="camera-container">
-          <!-- Video element for live feed -->
-          <video id="camera-feed" class="camera-feed" autoplay playsinline style="display: none;"></video>
-          <!-- Canvas for capturing -->
-          <canvas id="camera-canvas" style="display: none;"></canvas>
-          
-          <!-- Image preview for captured photo -->
-          <div class="image-preview-wrapper" id="capture-preview-wrapper" style="display: none;">
-            <div class="preview-title">Captured Photo Preview</div>
-            <img id="captured-preview-img" class="photo-preview-img" alt="Captured camera preview">
-          </div>
-
-          <!-- Hidden Input for Base64 Data -->
-          <input type="hidden" name="photoBase64" id="photo-base64">
-
-          <!-- Controls -->
-          <div class="camera-controls">
-            <button type="button" class="btn-camera-action primary" id="start-camera-btn" onclick="startCamera()">Start Camera</button>
-            <button type="button" class="btn-camera-action primary" id="capture-photo-btn" onclick="capturePhoto()" style="display: none;">Capture Photo</button>
-            <button type="button" class="btn-camera-action secondary" id="retake-photo-btn" onclick="retakePhoto()" style="display: none;">Retake</button>
-            <button type="button" class="btn-camera-action secondary" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">Turn Off Camera</button>
-          </div>
-        </div>
+      <!-- Controls -->
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="bg-primary hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold transition text-sm shadow-md" id="start-camera-btn" onclick="startCamera()">Start Camera</button>
+        <button type="button" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold transition text-sm shadow-md" id="capture-photo-btn" onclick="capturePhoto()" style="display: none;">Capture Photo</button>
+        <button type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold transition text-sm" id="retake-photo-btn" onclick="retakePhoto()" style="display: none;">Retake</button>
+        <button type="button" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-lg font-bold transition text-sm border border-rose-200" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">Turn Off Camera</button>
       </div>
     </div>
+  </div>
+</div>
+
+<script>
+  // Simple tab logic to make it work correctly with Tailwind classes
+  function switchTab(tabId) {
+    // Buttons
+    const uploadBtn = document.getElementById('tab-upload-btn');
+    const captureBtn = document.getElementById('tab-capture-btn');
+    // Contents
+    const uploadContent = document.getElementById('content-upload');
+    const captureContent = document.getElementById('content-capture');
+
+    if (tabId === 'upload') {
+      uploadBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition photo-tab-btn bg-white shadow text-primary";
+      captureBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition text-slate-500 hover:text-slate-800 photo-tab-btn";
+      uploadContent.classList.remove('hidden');
+      uploadContent.classList.add('block');
+      captureContent.classList.add('hidden');
+      captureContent.classList.remove('block');
+    } else {
+      captureBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition photo-tab-btn bg-white shadow text-primary";
+      uploadBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition text-slate-500 hover:text-slate-800 photo-tab-btn";
+      captureContent.classList.remove('hidden');
+      captureContent.classList.add('block');
+      uploadContent.classList.add('hidden');
+      uploadContent.classList.remove('block');
+    }
+  }
+</script>

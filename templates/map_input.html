@@ -1,0 +1,361 @@
+<!-- Reusable Leaflet.js Campus Map Component -->
+
+<div class="space-y-3">
+  <label for="location" class="block text-sm font-semibold text-slate-700">
+    {{ map_label | default('Location') }}
+  </label>
+
+  <div class="relative">
+    <input type="text" name="location" id="location" readonly
+      class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition cursor-pointer font-medium"
+      placeholder="{{ map_placeholder | default('Click to select location on map...') }}"
+      value="{{ item.location if item else '' }}" required
+      onclick="openPickerModal()" onfocus="openPickerModal()">
+    <button type="button" onclick="openPickerModal()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition text-lg focus:outline-none" title="Open Map Selector">
+      📍
+    </button>
+  </div>
+  <p class="text-xs text-slate-400 mt-1 font-semibold">Click the input or pin icon 📍 to select coordinates on the campus map.</p>
+
+  <!-- Map Picker Modal -->
+  <div id="map-picker-modal" class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0" style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
+    <div id="map-picker-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-4xl overflow-hidden transform scale-95 transition-all duration-300">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🗺️</span>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Select Location</h3>
+            <p class="text-xs text-slate-400 font-medium">Click on the map or choose a landmark</p>
+          </div>
+        </div>
+        <button type="button" onclick="closePickerModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Map Container & Landmarks selector) -->
+      <div class="relative w-full">
+        <!-- Selected location text bar inside modal -->
+        <div class="bg-slate-50 px-6 py-2.5 border-b border-slate-100 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <span id="picker-map-status-dot" class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+            Selected:
+          </span>
+          <span id="picker-selected-value" class="text-xs font-bold text-indigo-600 select-all truncate max-w-[70%]">None</span>
+        </div>
+
+        <!-- Leaflet Map -->
+        <div id="map" class="w-full" style="height: 550px; min-height: 550px; position: relative;"></div>
+
+        <!-- Landmarks Panel -->
+        <div class="p-3 bg-slate-50/50 border-t border-slate-100 max-h-36 overflow-y-auto">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Landmarks Selector:</p>
+          <div class="flex flex-wrap gap-1.5" id="landmark-tags">
+            <!-- Javascript will generate tags here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end gap-2 text-xs">
+        <button type="button" onclick="closePickerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmPickerLocation()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl transition shadow-md shadow-indigo-100">
+          Confirm Location
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const locationInput = document.getElementById('location');
+    const pickerModal = document.getElementById('map-picker-modal');
+    const pickerCard = document.getElementById('map-picker-modal-card');
+    const pickerSelectedValue = document.getElementById('picker-selected-value');
+    
+    const campusCenter = [21.2425, 81.3175];
+    let map = null;
+    let selectedMarker = null;
+    let tempSelectedLocation = locationInput.value || "";
+
+    const landmarks = [
+      { name: "Hostel Kanhar", coords: [21.2448, 81.3219], radius: 25 },
+      { name: "Hostel Shivnath", coords: [21.2406, 81.32015], radius: 25 },
+      { name: "Hostel Indravati", coords: [21.24311, 81.32076], radius: 25 },
+      { name: "Hostel Gopad", coords: [21.244, 81.32065], radius: 25 },
+      { name: "Tech Cafe", coords: [21.24368, 81.32092], radius: 12 },
+      { name: "NJC", coords: [21.24330, 81.32030], radius: 12 },
+      { name: "Mess", coords: [21.24354, 81.3219], radius: 20 },
+      { name: "Mess Parking", coords: [21.24315, 81.32165], radius: 10 },
+      { name: "Kanhar Parking", coords: [21.24474, 81.32102], radius: 15 },
+      { name: "LHC 500", coords: [21.24610, 81.31899], radius: 25 },
+      { name: "LHC 300", coords: [21.24583, 81.31848], radius: 20 },
+      { name: "ED 1", coords: [21.24591, 81.31787], radius: 25 },
+      { name: "ED 2", coords: [21.24625, 81.31769], radius: 25 },
+      { name: "SD 1", coords: [21.24731, 81.31996], radius: 25 },
+      { name: "SD 2", coords: [21.24766, 81.31980], radius: 25 },
+      { name: "CIF", coords: [21.24731, 81.31868], radius: 25 },
+      { name: "Health Centre", coords: [21.24207, 81.31323], radius: 20 },
+      { name: "LHC 101-208", coords: [21.24548, 81.31921], radius: 25 },
+      { name: "LDC", coords: [21.24643, 81.31966], radius: 25 },
+      { name: "Shopping Complex", coords: [21.24178, 81.31345], radius: 25 },
+      { name: "CPF", coords: [21.24780, 81.31793], radius: 15 },
+      { name: "Basketball/Volleyball Court Area", coords: [21.24613, 81.32187], radius: 30 },
+      { name: "Cricket/Football Ground", coords: [21.24711, 81.32187], radius: 55 },
+      { name: "Gate 1", coords: [21.24605, 81.31322], radius: 15 },
+      { name: "Gate 2", coords: [21.23965, 81.3201], radius: 15 },
+    ];
+
+    // Utility distance function (Haversine formula)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6370e3; // meters
+      const phi1 = lat1 * Math.PI / 180;
+      const phi2 = lat2 * Math.PI / 180;
+      const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+      const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+        Math.cos(phi1) * Math.cos(phi2) *
+        Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // Set status dot color
+    const isLost = window.location.pathname.includes('lost') || document.getElementById('report-lost-title') !== null;
+    const themeColor = isLost ? '#f43f5e' : '#10b981';
+    const statusDot = document.getElementById('picker-map-status-dot');
+    if (statusDot) {
+      statusDot.style.backgroundColor = themeColor;
+    }
+
+    window.openPickerModal = function() {
+      pickerModal.classList.remove('hidden');
+      pickerModal.classList.add('flex');
+      
+      // Initialize map on first open
+      if (!map) {
+        initializePickerMap();
+      }
+
+      setTimeout(() => {
+        pickerModal.classList.remove('opacity-0');
+        pickerModal.classList.add('opacity-100');
+        pickerCard.classList.remove('scale-95');
+        pickerCard.classList.add('scale-100');
+      }, 10);
+
+      // Invalidate map size to make sure it loads tiles correctly
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize();
+          
+          // Preload existing value into map if exists
+          const val = locationInput.value;
+          if (val) {
+            tempSelectedLocation = val;
+            pickerSelectedValue.textContent = val;
+            pickerSelectedValue.className = "text-xs font-bold text-indigo-600 select-all truncate max-w-[70%]";
+            
+            // Try matching coordinates or landmarks to place pin
+            const match = landmarks.find(l => val.toLowerCase().includes(l.name.toLowerCase()));
+            if (match) {
+              map.setView(match.coords, 20);
+              placePin(match.coords[0], match.coords[1]);
+            } else {
+              const coordsRegex = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/;
+              const found = val.match(coordsRegex);
+              if (found) {
+                const lat = parseFloat(found[1]);
+                const lng = parseFloat(found[2]);
+                map.setView([lat, lng], 20);
+                placePin(lat, lng);
+              }
+            }
+          }
+        }
+      }, 310);
+    };
+
+    window.closePickerModal = function() {
+      pickerModal.classList.remove('opacity-100');
+      pickerModal.classList.add('opacity-0');
+      pickerCard.classList.remove('scale-100');
+      pickerCard.classList.add('scale-95');
+      setTimeout(() => {
+        pickerModal.classList.remove('flex');
+        pickerModal.classList.add('hidden');
+      }, 300);
+    };
+
+    window.confirmPickerLocation = function() {
+      if (tempSelectedLocation) {
+        locationInput.value = tempSelectedLocation;
+        // Interactive UI flash feedback on input field
+        locationInput.classList.add('ring-2', 'ring-primary', 'border-transparent');
+        setTimeout(() => {
+          locationInput.classList.remove('ring-2', 'ring-primary', 'border-transparent');
+        }, 600);
+      }
+      closePickerModal();
+    };
+
+    function initializePickerMap() {
+      const southWest = L.latLng(21.238, 81.311);
+      const northEast = L.latLng(21.247, 81.324);
+      const campusBounds = L.latLngBounds(southWest, northEast);
+
+      map = L.map('map', {
+        center: campusCenter,
+        zoom: 17,
+        minZoom: 16,
+        maxZoom: 20,
+        maxBounds: campusBounds,
+        maxBoundsViscosity: 1.0,
+        zoomControl: true,
+        scrollWheelZoom: true
+      });
+
+      map.attributionControl.setPrefix('📌 IIT Bhilai');
+
+      const streetLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        attribution: '&copy; Google Maps',
+        maxZoom: 20
+      });
+
+      const satelliteHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        attribution: '&copy; Google Maps',
+        maxZoom: 20
+      });
+
+      satelliteHybrid.addTo(map);
+
+      L.control.layers({
+        "Google Satellite (Hybrid)": satelliteHybrid,
+        "Google Street View": streetLayer
+      }, null, { position: 'topright' }).addTo(map);
+
+      // Draw campus boundary circle
+      L.circle(campusCenter, {
+        color: themeColor,
+        fillColor: themeColor,
+        fillOpacity: 0.04,
+        radius: 800,
+        weight: 2.5,
+        dashArray: '6, 6',
+        interactive: false
+      }).addTo(map);
+
+      const createSvgIcon = (color, size = 12, borderSize = 2.5) => {
+        return L.divIcon({
+          className: 'custom-map-marker',
+          html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border-radius: 50%; border: ${borderSize}px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: translate(-2px, -2px);"></div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2]
+        });
+      };
+
+      const landmarkIcon = createSvgIcon('#6366f1', 12, 2.5);
+      const tagsContainer = document.getElementById('landmark-tags');
+
+      landmarks.forEach(landmark => {
+        const lMarker = L.marker(landmark.coords, { icon: landmarkIcon }).addTo(map);
+        lMarker.bindTooltip(landmark.name, { permanent: false, direction: 'top' });
+
+        lMarker.on('click', function () {
+          selectCoordinates(landmark.coords[0], landmark.coords[1], landmark.name);
+        });
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-sm transition-all duration-200 hover:border-slate-300 active:scale-95 flex items-center gap-1';
+        btn.innerHTML = `<span>📍</span><span>${landmark.name}</span>`;
+        btn.addEventListener('click', () => {
+          map.setView(landmark.coords, 20);
+          selectCoordinates(landmark.coords[0], landmark.coords[1], landmark.name);
+        });
+        tagsContainer.appendChild(btn);
+      });
+
+      // Click on map to place pin
+      map.on('click', function (e) {
+        selectCoordinates(e.latlng.lat, e.latlng.lng);
+      });
+
+      function placePin(lat, lng) {
+        const selectedIcon = createSvgIcon(themeColor, 16, 3);
+        if (selectedMarker) {
+          selectedMarker.setLatLng([lat, lng]);
+        } else {
+          selectedMarker = L.marker([lat, lng], { icon: selectedIcon }).addTo(map);
+        }
+      }
+
+      function selectCoordinates(lat, lng, name = null) {
+        // Validate coordinates bounds
+        const distFromCenter = calculateDistance(lat, lng, campusCenter[0], campusCenter[1]);
+        if (distFromCenter > 1000) {
+          pickerSelectedValue.textContent = "Outside campus bounds!";
+          pickerSelectedValue.className = "text-xs font-bold text-rose-500";
+          setTimeout(() => {
+            pickerSelectedValue.textContent = tempSelectedLocation || "None";
+            pickerSelectedValue.className = "text-xs font-bold text-indigo-600 select-all truncate max-w-[70%]";
+          }, 2000);
+          return;
+        }
+
+        placePin(lat, lng);
+
+        if (name) {
+          tempSelectedLocation = name;
+        } else {
+          // Calculate distance to all landmarks
+          const landmarkDistances = landmarks.map(l => {
+            const dist = calculateDistance(lat, lng, l.coords[0], l.coords[1]);
+            return { landmark: l, distance: dist };
+          });
+
+          // Sort by distance ascending
+          landmarkDistances.sort((a, b) => a.distance - b.distance);
+
+          const nearest = landmarkDistances[0].landmark;
+          const nearestDist = landmarkDistances[0].distance;
+
+          // 1. Direct Match Check
+          if (nearestDist < nearest.radius) {
+            tempSelectedLocation = nearest.name;
+            selectedMarker.setLatLng(nearest.coords);
+          } else {
+            const secondNearest = landmarkDistances[1] ? landmarkDistances[1].landmark : null;
+            const secondNearestDist = landmarkDistances[1] ? landmarkDistances[1].distance : Infinity;
+
+            const nearestNearThreshold = nearest.radius * 2.5;
+
+            // 2. Between Logic: if click is within near threshold of both, and distances are close
+            if (secondNearest && nearestDist < nearestNearThreshold && secondNearestDist < secondNearest.radius * 2.5 && Math.abs(nearestDist - secondNearestDist) < 25) {
+              tempSelectedLocation = `Between ${nearest.name} and ${secondNearest.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+            }
+            // 3. Near Logic
+            else if (nearestDist < nearestNearThreshold) {
+              tempSelectedLocation = `Near ${nearest.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+            }
+            // 4. Default Campus Area
+            else {
+              tempSelectedLocation = `Campus Area (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+            }
+          }
+        }
+
+        pickerSelectedValue.textContent = tempSelectedLocation;
+        pickerSelectedValue.className = "text-xs font-bold text-indigo-600 select-all truncate max-w-[70%]";
+      }
+    }
+  });
+</script>

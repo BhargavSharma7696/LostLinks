@@ -3,49 +3,56 @@
 {% block title %}Profile - 🔗 LostLinks{% endblock %}
 
 {% block content %}
+<div class="flex items-center justify-center min-h-[70vh]">
+  <div class="animate-fade-in-up bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-lg border border-slate-100">
 
-<div class="auth-container">
-  <div class="auth-header">
-    <h1 id="profile-title">Profile</h1>
-    <p>Your profile information</p>
-  </div>
-
-  <div class="profile-info">
-    <div class="profile-field">
-      <label for="profile-displayname">Display Name : </label>
-      <span id="profile-displayname">{{ user.displayName }}</span>
+    <div class="flex flex-col items-center mb-8">
+      <div
+        class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-[24px] flex items-center justify-center text-4xl font-bold shadow-lg mb-4">
+        {{ user.displayName[0].upper() if user.displayName else 'U' }}
+      </div>
+      <h1 class="text-3xl font-bold text-slate-800" id="profile-title">Profile</h1>
+      <p class="text-slate-500 font-medium">Your account information</p>
     </div>
 
-    <div class="profile-field">
-      <label for="profile-email">Email Address : </label>
-      <span id="profile-email">{{ user.email }}</span>
+    <div class="bg-slate-50 rounded-[20px] border border-slate-100 p-6 space-y-4 mb-8">
+      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Name : </span>
+        <span class="font-semibold text-slate-800 text-right break-words" id="profile-displayname">{{ user.displayName }}</span>
+      </div>
+
+      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Email : </span>
+        <span class="font-semibold text-slate-800 text-right break-all" id="profile-email">{{ user.email }}</span>
+      </div>
+
+      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Member Since : </span>
+        <span class="font-semibold text-slate-800 text-right" id="profile-memberssince">{{ user.membersSince.split("T")[0] if
+          user.membersSince else "N/A" }}</span>
+      </div>
+
+      {% if user.contactNumber %}
+      <div class="flex justify-between items-start pb-1 gap-4">
+        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Contact Number : </span>
+        <span class="font-semibold text-slate-800 text-right break-words" id="profile-contactnumber">{{ user.contactNumber }}</span>
+      </div>
+      {% endif %}
     </div>
 
-    <div class="profile-field">
-      <label for="profile-memberssince">Member Since : </label>
-      <span id="profile-memberssince">{{ (" ".join(user.membersSince.split("T")))[:-6] }}</span>
+    <div class="flex flex-col sm:flex-row gap-4 w-full mt-2">
+      <a href="{{ url_for('update_profile') }}"
+        class="flex-1 flex items-center justify-center text-center bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition"
+        id="update-profile-btn">
+        Update Profile
+      </a>
+      <a href="{{ url_for('dashboard') }}"
+        class="flex-1 flex items-center justify-center text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition"
+        id="dashboard-logout-btn">
+        Back to Dashboard
+      </a>
     </div>
 
-    {% if user.contactNumber %}
-    <div class="profile-field">
-      <label for="profile-contactnumber">Contact Number : </label>
-      <span id="profile-contactnumber">{{ user.contactNumber }}</span>
-    </div>
-    {% endif %}
-    <br><br><br>
-
-    <div class="hero-actions">
-      <span class="hero-action">
-        <a href="{{ url_for('update_profile') }}" class="btn-primary" id="update-profile-btn">
-          Update Profile
-        </a>
-      </span>
-      <span class="hero-action">
-        <a href="{{ url_for('dashboard') }}" class="btn-primary" id="dashboard-logout-btn">
-          Back
-        </a>
-      </span>
-    </div>
   </div>
 </div>
 {% endblock %}

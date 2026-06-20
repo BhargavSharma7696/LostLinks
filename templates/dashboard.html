@@ -3,237 +3,277 @@
 {% block title %}Dashboard - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="dashboard-layout">
+<div class="space-y-6">
 
-  <!-- Sleek Horizontal Header Banner -->
-  <div class="dashboard-header-card">
-    <div class="profile-summary-section">
-      <div class="profile-avatar-wrapper">
-        <div class="user-avatar" id="user-avatar-element">
-          {{ email[0].upper() if email else 'U' }}
-        </div>
+  <!-- Header Banner / Stats Bento Box -->
+  <div
+    class="animate-fade-in-up bg-gradient-to-br from-indigo-50 to-white rounded-[24px] shadow-sm border border-indigo-100 p-6 md:p-8 flex flex-col lg:flex-row gap-8 items-center justify-between relative overflow-hidden">
+
+    <!-- Decorative glow in the background -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="flex items-center gap-6 relative z-10">
+      <div
+        class="shrink-0 w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center text-3xl font-bold shadow-md shadow-indigo-200/50"
+        id="user-avatar-element">
+        {{ email[0].upper() if email else 'U' }}
       </div>
-      <div class="profile-details-wrapper">
-        <h1 id="dashboard-heading">🔗 LostLinks Portal</h1>
-        <p class="profile-meta-text">
-          Name: <b>{{ user.displayName if user else 'N/A' }}</b> &nbsp;&bull;&nbsp;
-          Joined: <b>{{ " ".join(user.membersSince.split('T'))[:-6] if user and user.membersSince else 'N/A' }}</b>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800" id="dashboard-heading">LostLinks Portal</h1>
+        <p class="text-slate-500 font-medium mt-1">
+          <span class="text-slate-700 font-bold ">{{ user.displayName if user else 'N/A' }}</span>
         </p>
-        <div>
-          <span class="user-email-badge" id="user-email-badge-value">{{ email }}</span>
+        <div
+          class="mt-3 inline-block bg-white border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold shadow-sm"
+          id="user-email-badge-value">
+          {{ email }}
         </div>
       </div>
     </div>
 
-    <!-- Counters Container -->
-    <div class="stats-container">
-      <div class="stat-card">
-        <div>
-          <div class="stat-label">Lost Items</div>
-          <div class="stat-val-red">{{ lost_unresolved_entries|length + lost_resolved_entries|length }}
-</div>
-        </div>
-        <div>
-          <div class="stat-val-green">{{ found_unresolved_entries|length + found_resolved_entries|length }}
-</div>
-          <div class="stat-label">Found Items</div>
+    <div class="flex flex-wrap md:flex-nowrap gap-4 w-full lg:w-auto justify-center relative z-10">
+      <!-- Stat Card 1 -->
+      <div
+        class="bg-white/80 rounded-2xl p-4 min-w-[120px] aspect-square md:aspect-auto flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-sm font-semibold text-slate-500 mb-1">Total Active</div>
+        <div class="flex justify-center gap-4">
+          <div class="text-rose-500 font-bold text-xl"><span class="text-xs text-slate-400 block -mb-1">Lost</span>{{
+            lost_unresolved_entries|length + lost_resolved_entries|length }}</div>
+          <div class="text-emerald-500 font-bold text-xl"><span
+              class="text-xs text-slate-400 block -mb-1">Found</span>{{ found_unresolved_entries|length +
+            found_resolved_entries|length }}</div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Resolved</div>
-        <div class="stat-val-red">{{ lost_resolved_entries|length }}</div>
-        <span class="stat-val-green">{{ found_resolved_entries|length }}</span>
+      <!-- Stat Card 2 -->
+      <div
+        class="bg-white/80 rounded-2xl p-4 min-w-[120px] aspect-square md:aspect-auto flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-sm font-semibold text-slate-500 mb-1">Resolved</div>
+        <div class="flex justify-center gap-4">
+          <div class="text-emerald-500 font-bold text-xl">{{ found_resolved_entries|length +lost_resolved_entries|length
+            }}</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">Unresolved</span>
-        <span class="stat-val-red">{{ lost_unresolved_entries|length }}</span>
-        <span class="stat-val-green">{{ found_unresolved_entries|length }}</span>
+      <!-- Stat Card 3 -->
+      <div
+        class="bg-white/80 rounded-2xl p-4 min-w-[120px] aspect-square md:aspect-auto flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-sm font-semibold text-slate-500 mb-1">Unresolved</div>
+        <div class="flex justify-center gap-4">
+          <div class="text-rose-500 font-bold text-xl">{{ lost_unresolved_entries|length +
+            found_unresolved_entries|length}}</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Search and Dynamic Filters Controls -->
-  <div class="filter-bar">
-    <div class="search-input-wrapper">
-      <span class="search-icon-indicator">🔍</span>
-      <input type="text" id="dashboard-search-input" class="search-input"
-        placeholder="Search items by title, details, or location..." onkeyup="filterDashboardItems()">
+  <!-- Filter & Action Bar Bento Box -->
+  <div
+    class="animate-fade-in-up delay-100 bg-gradient-to-br from-indigo-50 to-white rounded-[20px] shadow-sm border border-indigo-100 p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+    <div class="flex-1 w-full flex flex-col sm:flex-row gap-4">
+      <div class="relative flex-1">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+        <input type="text" id="dashboard-search-input"
+          class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary transition"
+          placeholder="Search items..." onkeyup="filterDashboardItems()">
+      </div>
+      <select id="dashboard-category-select"
+        class="w-full sm:w-48 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary transition"
+        onchange="filterDashboardItems()">
+        <option value="">All Categories</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Documents">Books & Documents</option>
+        <option value="Keys/Wallets">Keys & Wallets</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Accessories">Accessories</option>
+        <option value="Other">Other</option>
+      </select>
     </div>
-    <select id="dashboard-category-select" class="category-select" onchange="filterDashboardItems()">
-      <option value="">All Categories</option>
-      <option value="Electronics">Electronics</option>
-      <option value="Documents">Books & Documents</option>
-      <option value="Keys/Wallets">Keys & Wallets</option>
-      <option value="Clothing">Clothing</option>
-      <option value="Accessories">Accessories</option>
-      <option value="Other">Other</option>
-    </select>
   </div>
 
-  <!-- Main Grid layout for Lost and Found Columns -->
-  <div class="dashboard-grid">
+  <!-- Main Grid: Lost and Found -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <!-- Left Column: Lost Items -->
-    <div class="dashboard-column">
-      <div class="column-header-row">
-        <h2>Lost Items</h2>
-        <a href="{{ url_for('report_lost') }}" class="btn-primary btn-report-header" id="report-lost-btn">
-          Report Lost
-        </a>
+    <!-- Lost Items Column -->
+    <div class="flex flex-col gap-4 animate-fade-in-up delay-200">
+      <div class="flex items-center justify-between bg-gradient-to-r from-rose-500 to-white rounded-[20px] p-5 shadow-sm border border-rose-100">
+        <h2 class="text-xl font-bold text-white">Lost Items</h2>
+        <a href="{{ url_for('report_lost') }}"
+          class="bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-xl transition shadow-md"
+          id="report-lost-btn">Report Lost</a>
       </div>
 
-      <div class="items-scroll-list" id="lost-items-list">
+      <div class="flex flex-col gap-4 max-h-[800px] overflow-y-auto pr-2" id="lost-items-list">
         {% if lost_unresolved_entries %}
-          {% for entry in lost_unresolved_entries %}
-          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}" style="text-decoration: none; color: inherit; display: flex;">
-            <div class="item-card-header">
-              <h3 class="item-card-title">{{ entry.title }}</h3>
-              <span class="item-card-category">{{ entry.category }}</span>
-            </div>
+        {% for entry in lost_unresolved_entries %}
+        <a href="{{ url_for('chat', item_id=entry.id) }}"
+          class="group item-dashboard-card block bg-gradient-to-br from-rose-50 to-white rounded-[24px] shadow-sm border border-rose-100 hover:border-rose-300 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 p-6"
+          data-category="{{ entry.category }}">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="item-card-title text-xl font-bold text-slate-800">{{ entry.title }}</h3>
+            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{{
+              entry.category }}</span>
+          </div>
 
-            <div class="item-card-details">
-              <span><b>📍 Location Lost:</b> {{ entry.location }}</span>
-              <span><b>⏰ Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
-              <span><b>👤 Contact Reporter:</b> <span style="color: var(--accent-cyan);">{{ entry.reporterid }}</span></span>
-            </div>
+          <div class="text-sm text-slate-500 mb-4 space-y-1 item-card-details">
+            <p class="flex items-center gap-1 flex-wrap">
+              <b>📍 Location:</b>
+              <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                {{ entry.location }}
+              </button>
+            </p>
+            <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
+            <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
+          </div>
 
-            <p class="item-card-description">{{ entry.description }}</p>
+          <p class="text-slate-700 text-sm mb-4 line-clamp-3 item-card-description">{{ entry.description }}</p>
 
-            {% if entry.photourl %}
-            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="item-card-img">
-            {% endif %}
-          </a>
-          {% endfor %}
+          {% if entry.photourl %}
+          <div class="w-full h-48 rounded-xl overflow-hidden bg-slate-100 mt-2">
+            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          {% endif %}
+        </a>
+        {% endfor %}
         {% else %}
-        <div class="empty-state">
-          No active reports of lost items.
-        </div>
+        <div
+          class="bg-gradient-to-br from-indigo-50 to-white rounded-[24px] p-8 text-center text-slate-500 font-medium border border-indigo-100">
+          No
+          active reports of lost items.</div>
         {% endif %}
-        <!-- Dynamic No Results Message -->
-        <div class="empty-state" id="lost-no-results" style="display: none;">
-          No matching lost items found.
-        </div>
+        <div
+          class="bg-gradient-to-br from-indigo-50 to-white rounded-[24px] p-8 text-center text-slate-500 font-medium border border-indigo-100 hidden"
+          id="lost-no-results">No matching lost items found.</div>
       </div>
     </div>
 
-    <!-- Right Column: Found Items -->
-    <div class="dashboard-column">
-      <div class="column-header-row">
-        <h2>Found Items</h2>
-        <a href="{{ url_for('report_found') }}" class="btn-primary btn-report-header" id="report-found-btn">
-          Report Found
-        </a>
+    <!-- Found Items Column -->
+    <div class="flex flex-col gap-4 animate-fade-in-up delay-300">
+      <div class="flex items-center justify-between bg-gradient-to-r from-emerald-500 to-white rounded-[20px] p-5 shadow-sm border border-emerald-100">
+        <h2 class="text-xl font-bold text-white">Found Items</h2>
+        <a href="{{ url_for('report_found') }}"
+          class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-xl transition shadow-md"
+          id="report-found-btn">Report Found</a>
       </div>
 
-      <div class="items-scroll-list" id="found-items-list">
+      <div class="flex flex-col gap-4 max-h-[800px] overflow-y-auto pr-2" id="found-items-list">
         {% if found_unresolved_entries %}
-          {% for entry in found_unresolved_entries %}
-          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}" style="text-decoration: none; color: inherit; display: flex;">
-            <div class="item-card-header">
-              <h3 class="item-card-title">{{ entry.title }}</h3>
-              <span class="item-card-category"
-                style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0;">
-                {{ entry.category }}
-              </span>
-            </div>
+        {% for entry in found_unresolved_entries %}
+        <a href="{{ url_for('chat', item_id=entry.id) }}"
+          class="group item-dashboard-card block bg-gradient-to-br from-emerald-50 to-white rounded-[24px] shadow-sm border border-emerald-100 hover:border-emerald-300 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 p-6"
+          data-category="{{ entry.category }}">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="item-card-title text-xl font-bold text-slate-800">{{ entry.title }}</h3>
+            <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{{
+              entry.category }}</span>
+          </div>
 
-            <div class="item-card-details">
-              <span><b>📍 Location Found:</b> {{ entry.location }}</span>
-              <span><b>⏰ Time Found:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
-              <span><b>👤 Contact Reporter:</b> <span style="color: var(--accent-cyan);">{{ entry.reporterid }}</span></span>
-            </div>
+          <div class="text-sm text-slate-500 mb-4 space-y-1 item-card-details">
+            <p class="flex items-center gap-1 flex-wrap">
+              <b>📍 Location:</b>
+              <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                {{ entry.location }}
+              </button>
+            </p>
+            <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
+            <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
+          </div>
 
-            <p class="item-card-description">{{ entry.description }}</p>
+          <p class="text-slate-700 text-sm mb-4 line-clamp-3 item-card-description">{{ entry.description }}</p>
 
-            {% if entry.photourl %}
-            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="item-card-img">
-            {% endif %}
-          </a>
-          {% endfor %}
+          {% if entry.photourl %}
+          <div class="w-full h-48 rounded-xl overflow-hidden bg-slate-100 mt-2">
+            <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          {% endif %}
+        </a>
+        {% endfor %}
         {% else %}
-        <div class="empty-state">
-          No active reports of found items.
-        </div>
+        <div
+          class="bg-gradient-to-br from-indigo-50 to-white rounded-[24px] p-8 text-center text-slate-500 font-medium border border-indigo-100">
+          No
+          active reports of found items.</div>
         {% endif %}
-        <!-- Dynamic No Results Message -->
-        <div class="empty-state" id="found-no-results" style="display: none;">
-          No matching found items found.
-        </div>
+        <div
+          class="bg-gradient-to-br from-indigo-50 to-white rounded-[24px] p-8 text-center text-slate-500 font-medium border border-indigo-100 hidden"
+          id="found-no-results">No matching found items found.</div>
       </div>
     </div>
 
   </div>
 
-  <!-- Resolved Queries Section -->
-  <div class="dashboard-column resolved-section" style="width: 100%; margin-top: 1rem;">
-    <div class="column-header-row">
-      <h2>Resolved Queries</h2>
-      <span class="item-card-category"
-        style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">
-        History
-      </span>
+  <!-- Resolved Section (History) -->
+  <div class="mt-8">
+    <div class="flex items-center gap-4 mb-6">
+      <h2 class="text-2xl font-bold text-slate-800">Resolved History</h2>
+      <div class="h-px bg-slate-200 flex-1"></div>
     </div>
 
-    <div class="dashboard-grid" style="margin-top: 1.5rem; gap: 2rem;">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
       <!-- Lost Resolved -->
-      <div class="resolved-column-wrapper">
-        <h3
-          style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
-          Resolved Lost Items</h3>
-        <div class="items-scroll-list" id="lost-resolved-list" style="max-height: 40vh;">
+      <div class="flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider pl-2">Lost Items</h3>
+        <div class="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2" id="lost-resolved-list">
           {% if lost_resolved_entries %}
           {% for entry in lost_resolved_entries %}
-          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}"
-            style="opacity: 0.65; border-color: rgba(255,255,255,0.04); text-decoration: none; color: inherit; display: flex;">
-            <div class="item-card-header">
-              <h3 class="item-card-title" style="text-decoration: line-through; color: var(--text-secondary);">{{
-                entry.title }}</h3>
-              <span class="item-card-category"
-                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Resolved</span>
+          <a href="{{ url_for('chat', item_id=entry.id) }}"
+            class="item-dashboard-card block bg-slate-50 rounded-[20px] border border-slate-200 p-5 opacity-70 hover:opacity-100 transition"
+            data-category="{{ entry.category }}">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through">{{ entry.title }}</h3>
+              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
             </div>
-            <div class="item-card-details">
-              <span><b>Location:</b> {{ entry.location }}</span>
-              <span><b>Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+            <div class="text-xs text-slate-500 item-card-details">
+              <p class="flex items-center gap-1 flex-wrap">
+                <b>Loc:</b>
+                <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                  {{ entry.location }}
+                </button>
+                | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}
+              </p>
             </div>
-            <p class="item-card-description">{{ entry.description }}</p>
+            <p class="text-slate-500 text-sm mt-2 truncate item-card-description">{{ entry.description }}</p>
           </a>
           {% endfor %}
           {% else %}
-          <div class="empty-state" style="padding: 2rem 1rem;">No resolved lost items.</div>
+          <div class="text-slate-400 italic p-4 text-sm">No resolved lost items.</div>
           {% endif %}
         </div>
       </div>
 
       <!-- Found Resolved -->
-      <div class="resolved-column-wrapper">
-        <h3
-          style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
-          Resolved Found Items</h3>
-        <div class="items-scroll-list" id="found-resolved-list" style="max-height: 40vh;">
+      <div class="flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider pl-2">Found Items</h3>
+        <div class="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2" id="found-resolved-list">
           {% if found_resolved_entries %}
           {% for entry in found_resolved_entries %}
-          <a href="{{ url_for('chat', item_id=entry.id) }}" class="item-dashboard-card" data-category="{{ entry.category }}"
-            style="opacity: 0.65; border-color: rgba(255,255,255,0.04); text-decoration: none; color: inherit; display: flex;">
-            <div class="item-card-header">
-              <h3 class="item-card-title" style="text-decoration: line-through; color: var(--text-secondary);">{{
-                entry.title }}</h3>
-              <span class="item-card-category"
-                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Resolved</span>
+          <a href="{{ url_for('chat', item_id=entry.id) }}"
+            class="item-dashboard-card block bg-slate-50 rounded-[20px] border border-slate-200 p-5 opacity-70 hover:opacity-100 transition"
+            data-category="{{ entry.category }}">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through">{{ entry.title }}</h3>
+              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
             </div>
-            <div class="item-card-details">
-              <span><b>Location:</b> {{ entry.location }}</span>
-              <span><b>Time Found:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
+            <div class="text-xs text-slate-500 item-card-details">
+              <p class="flex items-center gap-1 flex-wrap">
+                <b>Loc:</b>
+                <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                  {{ entry.location }}
+                </button>
+                | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}
+              </p>
             </div>
-            <p class="item-card-description">{{ entry.description }}</p>
+            <p class="text-slate-500 text-sm mt-2 truncate item-card-description">{{ entry.description }}</p>
           </a>
           {% endfor %}
           {% else %}
-          <div class="empty-state" style="padding: 2rem 1rem;">No resolved found items.</div>
+          <div class="text-slate-400 italic p-4 text-sm">No resolved found items.</div>
           {% endif %}
         </div>
       </div>
+
     </div>
   </div>
+
 </div>
 
 <!-- Dynamic Instant Filtering Javascript -->
@@ -274,7 +314,7 @@
         detailsText.includes(query);
 
       if (matchesCategory && matchesText) {
-        card.style.display = 'flex';
+        card.style.display = 'block';
         visibleCount++;
       } else {
         card.style.display = 'none';
@@ -285,9 +325,9 @@
     const noResultsMsg = document.getElementById(noResultsId);
     if (noResultsMsg) {
       if (visibleCount === 0 && totalCards > 0) {
-        noResultsMsg.style.display = 'block';
+        noResultsMsg.classList.remove('hidden');
       } else {
-        noResultsMsg.style.display = 'none';
+        noResultsMsg.classList.add('hidden');
       }
     }
   }

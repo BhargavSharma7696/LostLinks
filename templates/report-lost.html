@@ -3,136 +3,143 @@
 {% block title %}Report Lost Item - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="report-layout">
-  <div class="auth-container">
-    <div class="auth-header">
-      <h1 id="report-lost-title">Report Lost Item</h1>
-      <p>Provide details of the item you have lost to help others identify it</p>
-    </div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  
+  <!-- Left Column: Form Bento Box -->
+  <div class="lg:col-span-2">
+    <div class="animate-fade-in-up delay-100 bg-white rounded-[24px] shadow-sm border border-slate-100 p-8">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2" id="report-lost-title">Report Lost Item</h1>
+        <p class="text-slate-500 font-medium">Provide details of the item you have lost to help others identify it</p>
+      </div>
 
-    <form action="{{ url_for('report_lost') }}" method="POST" id="report-lost-form" enctype="multipart/form-data" novalidate>
-      <!-- Title Input -->
-      <div class="form-group">
-        <label for="title" class="form-label" id="label-title">Item Title / Name</label>
-        <div class="input-wrapper">
-          <input type="text" name="title" id="title" class="form-input"
+      <form action="{{ url_for('report_lost') }}" method="POST" id="report-lost-form" enctype="multipart/form-data" novalidate class="space-y-6">
+        
+        <!-- Title Input -->
+        <div>
+          <label for="title" class="block text-sm font-semibold text-slate-700 mb-2" id="label-title">Item Title / Name</label>
+          <input type="text" name="title" id="title" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="e.g. Blue iPhone 13, Keys with leather holder" required aria-labelledby="label-title">
         </div>
-      </div>
 
-      <!-- Category Selector -->
-      <div class="form-group">
-        <label for="category" class="form-label" id="label-category">Category</label>
-        <div class="input-wrapper">
-          <select name="category" id="category" class="form-input" required aria-labelledby="label-category">
-            <option value="" disabled selected>Select category</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Documents">Books & Documents</option>
-            <option value="Keys/Wallets">Keys & Wallets</option>
-            <option value="Clothing">Clothing</option>
-            <option value="Accessories">Accessories</option>
-            <option value="Other">Other</option>
-          </select>
+        <!-- Row: Category & Time -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Category Selector -->
+          <div>
+            <label for="category" class="block text-sm font-semibold text-slate-700 mb-2" id="label-category">Category</label>
+            <select name="category" id="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" required aria-labelledby="label-category">
+              <option value="" disabled selected>Select category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Documents">Books & Documents</option>
+              <option value="Keys/Wallets">Keys & Wallets</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Lost Time-->
+          <div>
+            <label for="lost-time" class="block text-sm font-semibold text-slate-700 mb-2" id="label-lost-time">Lost Time</label>
+            <input type="datetime-local" name="lost-time" id="lost-time" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" required aria-labelledby="label-lost-time">
+          </div>
         </div>
-      </div>
 
-      <!-- Lost Time-->
-      <div class="form-group">
-        <label for="lost-time" class="form-label" id="label-lost-time">Lost Time</label>
-        <div class="input-wrapper">
-          <input type="datetime-local" name="lost-time" id="lost-time" class="form-input" required aria-labelledby="label-lost-time">
-        </div>
-      </div>
-
-      <!-- Location Lost Input -->
-      <div class="form-group">
-        <label for="location" class="form-label" id="label-location">Location Lost</label>
-        <div class="input-wrapper">
-          <input type="text" name="location" id="location" class="form-input"
+        <!-- Location Lost Input -->
+        {% set map_label = 'Location Lost' %}
+        {% set map_placeholder = 'Click to select location on map...' %}
+        {% include 'map_input.html' %}
+        <!-- <div>
+          <label for="location" class="block text-sm font-semibold text-slate-700 mb-2" id="label-location">Location Lost</label>
+          <input type="text" name="location" id="location" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="e.g. LHC Room 102, Library 2nd floor" required aria-labelledby="label-location">
-        </div>
-      </div>
+        </div> -->
 
-      <!-- Description Textarea -->
-      <div class="form-group">
-        <label for="description" class="form-label" id="label-description">Description & Details</label>
-        <div class="input-wrapper">
-          <textarea name="description" id="description" class="form-input"
+        <!-- Description Textarea -->
+        <div>
+          <label for="description" class="block text-sm font-semibold text-slate-700 mb-2" id="label-description">Description & Details</label>
+          <textarea name="description" id="description" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             placeholder="Describe unique identifiers, brand, color, approximate time lost, etc." rows="4" required
             aria-labelledby="label-description"></textarea>
         </div>
-      </div>
 
-      <!-- INCLUDE CAMERA INTERFACE -->
-      {% include 'camera.html' %}
+        <!-- INCLUDE CAMERA INTERFACE -->
+        {% include 'camera.html' %}
 
-      <!-- Submit Button -->
-      <button type="submit" class="btn-primary" id="report-lost-submit-btn">
-        Submit Lost Report
-      </button>
-    </form>
+        <!-- Submit Button -->
+        <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl px-4 py-4 mt-4 shadow-md shadow-rose-200 transition text-lg" id="report-lost-submit-btn">
+          Submit Lost Report
+        </button>
+      </form>
+    </div>
   </div>
 
-  <!-- Right Column: User's Reported Lost Items -->
-  <div class="items-column-container">
-    <div class="column-header">
-      <h2>Your Reported Items</h2>
-      <p>Track and view all lost reports you have submitted</p>
-    </div>
+  <!-- Right Column: User's Reported Lost Items (Bento Boxes) -->
+  <div class="lg:col-span-1">
+    <div class="animate-fade-in-up delay-200 bg-slate-900 rounded-[24px] shadow-sm p-6 text-white h-full max-h-[900px] overflow-hidden flex flex-col relative">
+      <div class="mb-6 z-10 relative">
+        <h2 class="text-xl font-bold mb-1">Your Reported Items</h2>
+        <p class="text-slate-400 text-sm font-medium">Track and view all lost reports you have submitted</p>
+      </div>
 
-    <div class="user-items-list">
-      {% if user_lost_entries %}
-        {% for entry in user_lost_entries %}
-          <div class="user-item-card">
-            <div class="user-item-header">
-              <span class="user-item-title">{{ entry.title }}</span>
-              <span class="user-item-category">{{ entry.category }}</span>
-            </div>
-            
-            <div class="user-item-details">
-              <span><b>📍 Location:</b> {{ entry.location }}</span>
-              <span><b>⏰ Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</span>
-              <span><b>Status:</b> 
-                {% if entry.status == 'resolved' %}
-                  <span style="color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 0.15rem 0.6rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">Resolved</span>
-                {% else %}
-                  <span style="color: var(--accent-cyan); background: rgba(6, 182, 212, 0.1); padding: 0.15rem 0.6rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">Active</span>
-                {% endif %}
-              </span>
-            </div>
-
-            <p class="user-item-description">{{ entry.description }}</p>
-
-            {% if entry.photourl %}
-              <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="user-item-img">
-            {% endif %}
-
-            {% if entry.status != 'resolved' %}
-              <div style="margin-top: 1rem; display: flex; justify-content: space-between;">
-                <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to mark this item as resolved?');">
-                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
-                    Mark as Resolved
-                  </button>
-                </form>
-                <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');">
-                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
-                    Delete Listing
-                  </button>
-                </form>
-                <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET">
-                  <button type="submit" class="btn-camera-action primary" style="padding: 0.4rem 1.2rem; font-size: 0.8rem;">
-                    Update Listing
-                  </button>
-                </form>
+      <div class="flex-1 overflow-y-auto pr-2 space-y-4 z-10 relative">
+        {% if user_lost_entries %}
+          {% for entry in user_lost_entries %}
+            <div class="bg-white rounded-2xl p-5 text-slate-800">
+              <div class="flex justify-between items-start mb-3">
+                <span class="font-bold text-lg leading-tight">{{ entry.title }}</span>
+                <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">{{ entry.category }}</span>
               </div>
-            {% endif %}
+              
+              <div class="text-xs text-slate-500 mb-3 space-y-1">
+                <p><b>📍 Location:</b> {{ entry.location }}</p>
+                <p><b>⏰ Time Lost:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
+                <p><b>Status:</b> 
+                  {% if entry.status == 'resolved' %}
+                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold ml-1">Resolved</span>
+                  {% else %}
+                    <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold ml-1">Active</span>
+                  {% endif %}
+                </p>
+              </div>
+
+              <p class="text-sm text-slate-700 mb-3 line-clamp-2">{{ entry.description }}</p>
+
+              {% if entry.photourl %}
+                <div class="w-full h-32 rounded-lg overflow-hidden bg-slate-100 mb-3">
+                  <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="w-full h-full object-cover">
+                </div>
+              {% endif %}
+
+              {% if entry.status != 'resolved' %}
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                  <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to mark this item as resolved?');" class="w-full">
+                    <button type="submit" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold py-2 rounded-lg transition">
+                      Resolve
+                    </button>
+                  </form>
+                  <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');" class="w-full">
+                    <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold py-2 rounded-lg transition">
+                      Delete
+                    </button>
+                  </form>
+                  <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET" class="col-span-2 mt-1">
+                    <button type="submit" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-lg transition">
+                      Update Listing
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-slate-400 font-medium italic text-sm text-center mt-10">
+            No lost items reported by you yet.
           </div>
-        {% endfor %}
-      {% else %}
-        <div class="empty-state">
-          No lost items reported by you yet.
-        </div>
-      {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="absolute -right-16 -bottom-16 text-[200px] opacity-5 pointer-events-none">🔍</div>
     </div>
   </div>
 </div>

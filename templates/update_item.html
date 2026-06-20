@@ -1,85 +1,81 @@
 {% extends "base.html" %}
 
-{% block title %}Update Listing - 🔗 LostLinks{% endblock %}
+{% block title %}Update Item - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-  <div class="auth-header">
-    <h1 id="update-item-title">Update Listing</h1>
-    <p>Modify the details of your reported {% if item.type == 'lost' %}lost{% else %}found{% endif %} item</p>
+<div class="flex items-center justify-center min-h-[70vh]">
+  <div class="bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-2xl border border-slate-100">
+    <div class="mb-8 border-b border-slate-100 pb-6">
+      <h1 class="text-3xl font-bold text-slate-800 mb-2">Update Item Listing</h1>
+      <p class="text-slate-500 font-medium">Make changes to your reported item's details</p>
+    </div>
+
+    <form action="{{ url_for('update_item', item_id=item.id) }}" method="POST" enctype="multipart/form-data" novalidate class="space-y-6">
+      
+      <!-- Title Input -->
+      <div>
+        <label for="title" class="block text-sm font-semibold text-slate-700 mb-2">Item Title / Name</label>
+        <input type="text" name="title" id="title" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+          value="{{ item.title }}" required>
+      </div>
+
+      <!-- Row: Category & Time -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Category Selector -->
+        <div>
+          <label for="category" class="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+          <select name="category" id="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" required>
+            <option value="Electronics" {% if item.category == 'Electronics' %}selected{% endif %}>Electronics</option>
+            <option value="Documents" {% if item.category == 'Documents' %}selected{% endif %}>Books & Documents</option>
+            <option value="Keys/Wallets" {% if item.category == 'Keys/Wallets' %}selected{% endif %}>Keys & Wallets</option>
+            <option value="Clothing" {% if item.category == 'Clothing' %}selected{% endif %}>Clothing</option>
+            <option value="Accessories" {% if item.category == 'Accessories' %}selected{% endif %}>Accessories</option>
+            <option value="Other" {% if item.category == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+        <!-- Lost Time-->
+        <div>
+          <label for="lost-time" class="block text-sm font-semibold text-slate-700 mb-2">Time Lost/Found</label>
+          <input type="datetime-local" name="lost-time" id="lost-time" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" 
+            value="{{ item.losttime }}" required>
+        </div>
+      </div>
+
+      <!-- Location Input -->
+      {% set map_label = 'Location' %}
+      {% set map_placeholder = 'Click to select location on map...' %}
+      {% include 'map_input.html' %}
+
+      <!-- Description Textarea -->
+      <div>
+        <label for="description" class="block text-sm font-semibold text-slate-700 mb-2">Description & Details</label>
+        <textarea name="description" id="description" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+          rows="4" required>{{ item.description }}</textarea>
+      </div>
+
+      {% if item.photourl %}
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+          <p class="text-sm font-bold text-slate-700 mb-2">Current Photo:</p>
+          <img src="{{ item.photourl }}" alt="Current photo" class="max-h-40 rounded-lg border border-slate-300">
+        </div>
+      {% endif %}
+
+      <!-- INCLUDE CAMERA INTERFACE -->
+      {% include 'camera.html' %}
+
+      <div class="flex gap-4 mt-8 pt-4 border-t border-slate-100">
+        <button type="submit" class="flex-1 bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition">
+          Save Updates
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="flex-1 text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition">
+          Cancel
+        </a>
+      </div>
+    </form>
   </div>
-
-  <form class="auth-form" action="{{ url_for('update_item', item_id=item.id) }}" method="POST" id="update-item-form" novalidate>
-    <!-- Title Input -->
-    <div class="form-group">
-      <label for="title" class="form-label" id="label-title">Item Title / Name</label>
-      <div class="input-wrapper">
-        <input type="text" name="title" id="title" class="form-input"
-          value="{{ item.title }}" aria-labelledby="label-title">
-      </div>
-    </div>
-
-    <!-- Category Selector -->
-    <div class="form-group">
-      <label for="category" class="form-label" id="label-category">Category</label>
-      <div class="input-wrapper">
-        <select name="category" id="category" class="form-input" aria-labelledby="label-category">
-          <option value="Electronics" {% if item.category == 'Electronics' %}selected{% endif %}>Electronics</option>
-          <option value="Documents" {% if item.category == 'Documents' %}selected{% endif %}>Books & Documents</option>
-          <option value="Keys/Wallets" {% if item.category == 'Keys/Wallets' %}selected{% endif %}>Keys & Wallets</option>
-          <option value="Clothing" {% if item.category == 'Clothing' %}selected{% endif %}>Clothing</option>
-          <option value="Accessories" {% if item.category == 'Accessories' %}selected{% endif %}>Accessories</option>
-          <option value="Other" {% if item.category == 'Other' %}selected{% endif %}>Other</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Timing -->
-    <div class="form-group">
-      <label for="lost-time" class="form-label" id="label-lost-time">
-        {% if item.type == 'lost' %}Lost Time{% else %}Found Time{% endif %}
-      </label>
-      <div class="input-wrapper">
-        <input type="datetime-local" name="lost-time" id="lost-time" class="form-input"
-          value="{{ item.losttime }}" aria-labelledby="label-lost-time">
-      </div>
-    </div>
-
-    <!-- Location Input -->
-    <div class="form-group">
-      <label for="location" class="form-label" id="label-location">
-        Location {% if item.type == 'lost' %}Lost{% else %}Found{% endif %}
-      </label>
-      <div class="input-wrapper">
-        <input type="text" name="location" id="location" class="form-input"
-          value="{{ item.location }}" aria-labelledby="label-location">
-      </div>
-    </div>
-
-    <!-- Description Textarea -->
-    <div class="form-group">
-      <label for="description" class="form-label" id="label-description">Description & Details</label>
-      <div class="input-wrapper">
-        <textarea name="description" id="description" class="form-input" rows="4"
-          aria-labelledby="label-description">{{ item.description }}</textarea>
-      </div>
-    </div>
-
-    <!-- Photo Display (Read-Only) -->
-    {% if item.photourl %}
-    <div class="form-group" style="margin-top: 1.5rem; text-align: center;">
-      <label class="form-label" style="text-align: left;">Listing Photo</label>
-      <div class="image-preview-wrapper" style="margin-top: 0.5rem; border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.4);">
-        <img src="{{ item.photourl }}" alt="Item Photo" class="photo-preview-img" style="max-height: 180px; width: auto; object-fit: cover; border-radius: 8px;">
-        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; letter-spacing: 0.5px;">Photo cannot be updated</p>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Submit Button -->
-    <button type="submit" class="btn-primary" id="update-item-submit-btn" style="margin-top: 1.5rem;">
-      Save Modifications
-    </button>
-  </form>
 </div>
+
+<!-- INCLUDE CAMERA JAVASCRIPT LOGIC -->
+{% include 'cam_script.js' %}
 {% endblock %}

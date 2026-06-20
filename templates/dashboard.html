@@ -114,7 +114,12 @@
           </div>
 
           <div class="text-sm text-slate-500 mb-4 space-y-1 item-card-details">
-            <p><b>📍 Location:</b> {{ entry.location }}</p>
+            <p class="flex items-center gap-1 flex-wrap">
+              <b>📍 Location:</b>
+              <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                {{ entry.location }}
+              </button>
+            </p>
             <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
             <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
           </div>
@@ -162,7 +167,12 @@
           </div>
 
           <div class="text-sm text-slate-500 mb-4 space-y-1 item-card-details">
-            <p><b>📍 Location:</b> {{ entry.location }}</p>
+            <p class="flex items-center gap-1 flex-wrap">
+              <b>📍 Location:</b>
+              <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                {{ entry.location }}
+              </button>
+            </p>
             <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
             <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
           </div>
@@ -213,8 +223,13 @@
               <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
             </div>
             <div class="text-xs text-slate-500 item-card-details">
-              <p><b>Loc:</b> {{ entry.location }} | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if
-                entry.losttime else "N/A" }}</p>
+              <p class="flex items-center gap-1 flex-wrap">
+                <b>Loc:</b>
+                <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                  {{ entry.location }}
+                </button>
+                | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}
+              </p>
             </div>
             <p class="text-slate-500 text-sm mt-2 truncate item-card-description">{{ entry.description }}</p>
           </a>
@@ -239,8 +254,13 @@
               <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
             </div>
             <div class="text-xs text-slate-500 item-card-details">
-              <p><b>Loc:</b> {{ entry.location }} | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if
-                entry.losttime else "N/A" }}</p>
+              <p class="flex items-center gap-1 flex-wrap">
+                <b>Loc:</b>
+                <button onclick="showLocationMap(event, '{{ entry.location }}')" class="text-primary hover:text-indigo-800 hover:underline inline-flex items-center gap-0.5 transition focus:outline-none text-left cursor-pointer font-medium">
+                  {{ entry.location }}
+                </button>
+                | <b>Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}
+              </p>
             </div>
             <p class="text-slate-500 text-sm mt-2 truncate item-card-description">{{ entry.description }}</p>
           </a>

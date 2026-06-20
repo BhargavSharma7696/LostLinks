@@ -77,7 +77,8 @@ def update_item_entry(item_id, email, title, category, location, description, lo
         "category": category,
         "location": location,
         "description": description,
-        "losttime": losttime
+        "losttime": losttime,
+        "updatedat" : datetime.now().strftime("%b-%d-%Y %H:%M:%S")
     }
     response = supabase.table("Item").update(update_data).eq("id", item_id).eq("reporterid", email).execute()
     print(f"Successfully updated item {item_id} in Supabase: {title}")

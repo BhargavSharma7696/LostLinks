@@ -7,6 +7,11 @@
   <title>{% block title %}LostLinks{% endblock %}</title>
   <!-- Compiled Tailwind CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -54,12 +59,12 @@
         {% if session.get('user_email') %}
         <a href="{{ url_for('dashboard') }}" class="text-slate-600 hover:text-primary font-medium transition"
           id="nav-dashboard-link">Dashboard</a>
+        <a href="{{ url_for('profile') }}" class="text-slate-600 hover:text-primary font-medium transition"
+          id="nav-profile-link">Profile</a>
         <a href="{{ url_for('report_lost') }}" class="text-slate-600 hover:text-primary font-medium transition"
           id="nav-report-lost-link">Report Lost</a>
         <a href="{{ url_for('report_found') }}" class="text-slate-600 hover:text-primary font-medium transition"
           id="nav-report-found-link">Report Found</a>
-        <a href="{{ url_for('profile') }}" class="text-slate-600 hover:text-primary font-medium transition"
-          id="nav-profile-link">Profile</a>
         <a href="{{ url_for('logout') }}"
           class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-medium transition"
           id="nav-logout-btn">Log Out</a>
@@ -148,7 +153,232 @@
     </div>
   </footer>
 
+  <!-- Global Map Modal -->
+  <div id="global-map-modal" class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0" style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
+    <div id="global-map-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-4xl overflow-hidden transform scale-95 transition-all duration-300">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📍</span>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base" id="global-map-title">Location Map</h3>
+            <p class="text-xs text-slate-400 font-medium select-all" id="global-map-subtitle">Item Location Details</p>
+          </div>
+        </div>
+        <button onclick="closeLocationMap()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none" aria-label="Close Map">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Map Body -->
+      <div class="relative w-full bg-slate-50" style="height: 550px; min-height: 550px;">
+        <div id="global-modal-map" class="w-full h-full z-10" style="height: 100%; width: 100%;"></div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500 font-semibold">
+        <span id="global-map-status" class="text-indigo-600 font-semibold">Interactive Map</span>
+        <button onclick="closeLocationMap()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    let globalModalMap = null;
+    let globalModalMarker = null;
+
+    const campusLandmarks = [
+      { name: "Hostel Kanhar", coords: [21.2448, 81.3219], radius: 25 },
+      { name: "Hostel Shivnath", coords: [21.2406, 81.32015], radius: 25 },
+      { name: "Hostel Indravati", coords: [21.24311, 81.32076], radius: 25 },
+      { name: "Hostel Gopad", coords: [21.244, 81.32065], radius: 25 },
+      { name: "Tech Cafe", coords: [21.24368, 81.32092], radius: 12 },
+      { name: "NJC", coords: [21.24330, 81.32030], radius: 12 },
+      { name: "Mess", coords: [21.24354, 81.3219], radius: 20 },
+      { name: "Mess Parking", coords: [21.24315, 81.32165], radius: 10 },
+      { name: "Kanhar Parking", coords: [21.24474, 81.32102], radius: 15 },
+      { name: "LHC 500", coords: [21.24610, 81.31899], radius: 25 },
+      { name: "LHC 300", coords: [21.24583, 81.31848], radius: 20 },
+      { name: "ED 1", coords: [21.24591, 81.31787], radius: 25 },
+      { name: "ED 2", coords: [21.24625, 81.31769], radius: 25 },
+      { name: "SD 1", coords: [21.24731, 81.31996], radius: 25 },
+      { name: "SD 2", coords: [21.24766, 81.31980], radius: 25 },
+      { name: "CIF", coords: [21.24731, 81.31868], radius: 25 },
+      { name: "Health Centre", coords: [21.24207, 81.31323], radius: 20 },
+      { name: "LHC 101-208", coords: [21.24548, 81.31921], radius: 25 },
+      { name: "LDC", coords: [21.24643, 81.31966], radius: 25 },
+      { name: "Shopping Complex", coords: [21.24178, 81.31345], radius: 25 },
+      { name: "CPF", coords: [21.24780, 81.31793], radius: 15 },
+      { name: "Basketball/Volleyball Court Area", coords: [21.24613, 81.32187], radius: 30 },
+      { name: "Cricket/Football Ground", coords: [21.24711, 81.32187], radius: 55 },
+      { name: "Gate 1", coords: [21.24605, 81.31322], radius: 15 },
+      { name: "Gate 2", coords: [21.23965, 81.3201], radius: 15 }
+    ];
+
+    function showLocationMap(event, locationStr) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      const modal = document.getElementById('global-map-modal');
+      const card = document.getElementById('global-map-modal-card');
+      const titleEl = document.getElementById('global-map-title');
+      const subtitleEl = document.getElementById('global-map-subtitle');
+      const statusEl = document.getElementById('global-map-status');
+
+      if (!modal || !card) return;
+
+      // Update text details
+      titleEl.textContent = "Location Map";
+      subtitleEl.textContent = locationStr || "IIT Bhilai Campus";
+
+      // Show modal
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.classList.add('opacity-100');
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+      }, 10);
+
+      // Determine coords
+      const campusCenter = [21.2425, 81.3175];
+      const southWestCoords = [21.238, 81.311];
+      const northEastCoords = [21.247, 81.324];
+      let finalCoords = campusCenter;
+      let matchedType = "default";
+      let locationLabel = "IIT Bhilai Campus";
+
+      if (locationStr) {
+        // 1. Try parsing coordinates from the string (lat, lng)
+        const coordsRegex = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/;
+        const coordsMatch = locationStr.match(coordsRegex);
+        if (coordsMatch) {
+          finalCoords = [parseFloat(coordsMatch[1]), parseFloat(coordsMatch[2])];
+          matchedType = "coordinates";
+          locationLabel = locationStr;
+        } else {
+          // 2. Try matching a known landmark (case insensitive search)
+          const matchedLandmark = campusLandmarks.find(l => 
+            locationStr.toLowerCase().includes(l.name.toLowerCase())
+          );
+          if (matchedLandmark) {
+            finalCoords = matchedLandmark.coords;
+            matchedType = "landmark";
+            locationLabel = matchedLandmark.name;
+          }
+        }
+      }
+
+      // Update status text
+      if (matchedType === "coordinates") {
+        statusEl.textContent = "📍 Exact Coordinates Match";
+        statusEl.className = "text-emerald-600 font-semibold";
+      } else if (matchedType === "landmark") {
+        statusEl.textContent = `📍 Match: ${locationLabel}`;
+        statusEl.className = "text-indigo-600 font-semibold";
+      } else {
+        statusEl.textContent = "📍 Campus Area General View";
+        statusEl.className = "text-slate-500 font-semibold";
+      }
+
+      // Initialize or reuse Leaflet Map
+      setTimeout(() => {
+        if (!globalModalMap) {
+          const bounds = L.latLngBounds(southWestCoords, northEastCoords);
+          globalModalMap = L.map('global-modal-map', {
+            center: finalCoords,
+            zoom: 20,
+            minZoom: 16,
+            maxZoom: 20,
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0,
+            zoomControl: true,
+            scrollWheelZoom: true
+          });
+
+          globalModalMap.attributionControl.setPrefix('📌 IIT Bhilai');
+
+          const streetLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+          });
+
+          const satelliteHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+          });
+
+          satelliteHybrid.addTo(globalModalMap);
+
+          L.control.layers({
+            "Google Satellite (Hybrid)": satelliteHybrid,
+            "Google Street View": streetLayer
+          }, null, { position: 'topright' }).addTo(globalModalMap);
+
+          // Draw visual boundary circle (1000m radius)
+          L.circle(campusCenter, {
+            color: '#6366f1',
+            fillColor: '#6366f1',
+            fillOpacity: 0.05,
+            radius: 1000,
+            weight: 2,
+            dashArray: '6, 6',
+            interactive: false
+          }).addTo(globalModalMap);
+        } else {
+          globalModalMap.setView(finalCoords, 20);
+        }
+
+        // Custom Marker Icon to prevent path resolution issues
+        const markerIcon = L.divIcon({
+          className: 'custom-modal-marker',
+          html: `<div style="background-color: #6366f1; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transform: translate(-3px, -3px);"></div>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        });
+
+        if (globalModalMarker) {
+          globalModalMarker.setLatLng(finalCoords);
+        } else {
+          globalModalMarker = L.marker(finalCoords, { icon: markerIcon }).addTo(globalModalMap);
+        }
+
+        globalModalMarker.bindTooltip(locationLabel, { permanent: true, direction: 'top', offset: [0, -5] }).openTooltip();
+        
+        globalModalMap.invalidateSize();
+      }, 150);
+    }
+
+    function closeLocationMap() {
+      const modal = document.getElementById('global-map-modal');
+      const card = document.getElementById('global-map-modal-card');
+      if (!modal || !card) return;
+
+      modal.classList.remove('opacity-100');
+      modal.classList.add('opacity-0');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    // Attach listeners for escape key and outside click to close
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLocationMap();
+      }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
       // Flash messages dismiss logic
       const container = document.getElementById('flash-container');
@@ -162,6 +392,15 @@
             setTimeout(() => alert.remove(), 500);
           });
         }, 5000);
+      }
+
+      const modal = document.getElementById('global-map-modal');
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            closeLocationMap();
+          }
+        });
       }
 
       // Mobile Menu Toggle Logic

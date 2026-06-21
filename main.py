@@ -704,10 +704,7 @@ def assistant_page():
     if request.method == 'POST':
         message = request.form.get('message', '').strip()
         if message:
-            # 1. Save user's message to Supabase assistant table
             database.save_assistant_query(email, "user", message)
-            
-            # 2. Invoke LangGraph Assistant Agent
             config = {"configurable": {"thread_id": email}}
             try:
                 result = assistant_app.invoke({"messages": [HumanMessage(content=message)]}, config=config)
@@ -715,13 +712,8 @@ def assistant_page():
             except Exception as e:
                 print(f"Error invoking AI assistant: {e}")
                 response_text = "Sorry, I am facing an issue processing your request right now."
-                
-            # 3. Save assistant's reply to Supabase assistant table
             database.save_assistant_query(email, "assistant", response_text)
-            
         return redirect(url_for('assistant_page', active=1))
-
-    # GET Request
     show_history = (request.args.get('active') == '1') or (request.args.get('show_history') == 'true')
 
     try:

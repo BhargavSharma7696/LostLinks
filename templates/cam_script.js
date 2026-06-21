@@ -1,19 +1,29 @@
 <script>
   let stream = null;
 
-  function switchTab(tab) {
-    document.getElementById('content-upload').classList.remove('active');
-    document.getElementById('content-capture').classList.remove('active');
-    document.getElementById('tab-upload-btn').classList.remove('active');
-    document.getElementById('tab-capture-btn').classList.remove('active');
+  {/* // Simple tab logic to make it work correctly with Tailwind classes */}
+  function switchTab(tabId) {
+    // Buttons
+    const uploadBtn = document.getElementById('tab-upload-btn');
+    const captureBtn = document.getElementById('tab-capture-btn');
+    // Contents
+    const uploadContent = document.getElementById('content-upload');
+    const captureContent = document.getElementById('content-capture');
 
-    if (tab === 'upload') {
-      document.getElementById('content-upload').classList.add('active');
-      document.getElementById('tab-upload-btn').classList.add('active');
-      stopCamera();
-    } else if (tab === 'capture') {
-      document.getElementById('content-capture').classList.add('active');
-      document.getElementById('tab-capture-btn').classList.add('active');
+    if (tabId === 'upload') {
+      uploadBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition photo-tab-btn bg-white shadow text-primary";
+      captureBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition text-slate-500 hover:text-slate-800 photo-tab-btn";
+      uploadContent.classList.remove('hidden');
+      uploadContent.classList.add('block');
+      captureContent.classList.add('hidden');
+      captureContent.classList.remove('block');
+    } else {
+      captureBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition photo-tab-btn bg-white shadow text-primary";
+      uploadBtn.className = "px-4 py-2 text-sm font-bold rounded-lg transition text-slate-500 hover:text-slate-800 photo-tab-btn";
+      captureContent.classList.remove('hidden');
+      captureContent.classList.add('block');
+      uploadContent.classList.add('hidden');
+      uploadContent.classList.remove('block');
     }
   }
 
@@ -108,7 +118,11 @@ function capturePhoto() {
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+
+    // console.log("Length:", dataUrl.length);
+    // console.log("Approx size KB:", Math.round(dataUrl.length / 1024));
+    // alert("Approx size KB: " + Math.round(dataUrl.length / 1024));
 
     // Clear uploaded file if one was previously selected
     document.getElementById('photo-file').value = '';

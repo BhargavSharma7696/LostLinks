@@ -7,6 +7,7 @@ import re
 from cam import upload_photo
 from Assistant import app as assistant_app
 from langchain_core.messages import HumanMessage
+from datetime import datetime
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = login_data.super_secret
@@ -388,6 +389,29 @@ def report_lost():
         if not category or not category.strip():
             flash("Category is required.", "error")
             return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
+        
+        if not losttime or not losttime.strip():
+            flash("Lost time is required.", "error")
+            return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
+        
+        try:
+            selected_time = datetime.fromisoformat(losttime)
+
+            if selected_time > datetime.now():
+                flash("Date and time cannot be in the future.", "error")
+                return render_template(
+                    'report-lost.html',
+                    email=user_email,
+                    user_found_entries=user_lost_entries
+                )
+
+        except (ValueError, TypeError):
+            flash("Invalid date and time.", "error")
+            return render_template(
+                'report-lost.html',
+                email=user_email,
+                user_found_entries=user_lost_entries
+            )
 
         try:
             photo_url = upload_photo(photo_file, photo_base64)
@@ -460,6 +484,29 @@ def report_found():
         if not category or not category.strip():
             flash("Category is required.", "error")
             return render_template('report-found.html', email=user_email, user_found_entries=user_found_entries)
+        
+        if not losttime or not losttime.strip():
+            flash("Lost time is required.", "error")
+            return render_template('report-found.html', email=user_email, user_lost_entries=user_found_entries)
+        
+        try:
+            selected_time = datetime.fromisoformat(losttime)
+
+            if selected_time > datetime.now():
+                flash("Date and time cannot be in the future.", "error")
+                return render_template(
+                    'report-found.html',
+                    email=user_email,
+                    user_found_entries=user_found_entries
+                )
+
+        except (ValueError, TypeError):
+            flash("Invalid date and time.", "error")
+            return render_template(
+                'report-found.html',
+                email=user_email,
+                user_found_entries=user_found_entries
+            )
 
         try:
             photo_url = upload_photo(photo_file, photo_base64)

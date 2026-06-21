@@ -515,6 +515,9 @@
       lMarker.bindTooltip(landmark.name, { permanent: false, direction: 'top' });
     });
 
+    // Keep track of coordinate occurrences to prevent overlapping markers from hiding each other
+    const coordUsage = {};
+
     // Plot Active Items
     activeItems.forEach(item => {
       let itemCoords = null;
@@ -529,11 +532,25 @@
           locationStr.toLowerCase().includes(l.name.toLowerCase())
         );
         if (matchedLandmark) {
-          itemCoords = matchedLandmark.coords;
+          // Clone the landmark coordinates to prevent mutating the shared landmarks list
+          itemCoords = [matchedLandmark.coords[0], matchedLandmark.coords[1]];
         }
       }
 
       if (itemCoords) {
+        const coordKey = `${itemCoords[0].toFixed(5)},${itemCoords[1].toFixed(5)}`;
+        if (coordUsage[coordKey]) {
+          const count = coordUsage[coordKey];
+          // Spread multiple items at the same location in a spiral pattern
+          const angle = count * (2 * Math.PI / 6); // 6 directions
+          const offsetRadius = 0.00008 + 0.00003 * Math.floor(count / 6); // spiral outward
+          itemCoords[0] += offsetRadius * Math.cos(angle);
+          itemCoords[1] += offsetRadius * Math.sin(angle);
+          coordUsage[coordKey]++;
+        } else {
+          coordUsage[coordKey] = 1;
+        }
+
         const isLost = item.type === 'lost';
         const markerColor = isLost ? '#f43f5e' : '#10b981';
         const itemIcon = createSvgIcon(markerColor, 16, 3);

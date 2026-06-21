@@ -108,13 +108,6 @@ def fetch_reported_by_user(email):
     all_items = {"lost": lost, "found": found, "resolved": resolved}
     return {"items_reported_by_specific_user" : all_items}
 
-# @tool
-# def tell_about_an_item(item_id):
-#     """Tell about a specific item by its id.
-#         First search where the item specified by the user exists or not.
-#         If yes, then get its id and use this tool"""
-#     item = database.get_item_by_id(item_id)
-#     return {"specific_item" : item}
 
 tools = [fetch_items, fetch_reported_by_user]
 tool_node = ToolNode(tools)
@@ -125,7 +118,6 @@ model = llm.bind_tools(tools)
 def chat_node(state: AgentState, config):
     """Interact with LLM to generate a response"""
     email = config.get("configurable", {}).get("thread_id", "unknown")
-    # Dynamically inject the user's email context
     dynamic_system_message = SystemMessage(
         content=system_message.content + f"\n\n### CURRENT USER CONTEXT\nThe email of the user you are currently chatting with is: '{email}'. When executing fetch_reported_by_user, ALWAYS pass this email as the argument."
     )

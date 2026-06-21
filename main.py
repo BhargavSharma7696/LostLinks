@@ -722,7 +722,14 @@ def assistant_page():
         print(f"Error loading assistant history: {e}")
         history = []
         
-    return render_template("assistant.html", email=email, history=history, show_history=show_history)
+        try:
+        all_entries = database.get_entries()
+        active_items = [item for item in all_entries if item.get('status') == 'active']
+    except Exception as e:
+        print(f"Error fetching active items for map: {e}")
+        active_items = []
+        
+    return render_template("assistant.html", email=email, history=history, show_history=show_history, active_items=active_items)
 
 if __name__ == '__main__':
     database.init_db()

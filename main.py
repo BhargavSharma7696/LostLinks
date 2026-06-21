@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from pydantic import ValidationError
 import login_data
 import database
+import re
 from cam import upload_photo
 from Assistant import app as assistant_app
 from langchain_core.messages import HumanMessage

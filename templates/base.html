@@ -7,6 +7,8 @@
   <title>{% block title %}LostLinks{% endblock %}</title>
   <!-- Compiled Tailwind CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- AI Assistant Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/assistant.css') }}">
   <!-- Leaflet Map CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -24,22 +26,22 @@
       scrollbar-width: thin;
       scrollbar-color: #cbd5e1 transparent;
     }
-    
+
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
-    
+
     ::-webkit-scrollbar-track {
       background: transparent;
       margin: 4px;
     }
-    
+
     ::-webkit-scrollbar-thumb {
       background-color: #cbd5e1;
       border-radius: 10px;
     }
-    
+
     ::-webkit-scrollbar-thumb:hover {
       background-color: #94a3b8;
     }
@@ -65,10 +67,14 @@
           id="nav-report-lost-link">Report Lost</a>
         <a href="{{ url_for('report_found') }}" class="text-slate-600 hover:text-primary font-medium transition"
           id="nav-report-found-link">Report Found</a>
+        <a href="{{ url_for('assistant_page') }}" class="text-slate-600 hover:text-primary font-medium transition"
+          id="nav-assistant-link">AI Assistant</a>
         <a href="{{ url_for('logout') }}"
           class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-medium transition"
           id="nav-logout-btn">Log Out</a>
         {% else %}
+        <a href="{{ url_for('assistant_page') }}" class="text-slate-600 hover:text-primary font-medium transition"
+          id="nav-assistant-loggedout-link">AI Assistant</a>
         <a href="{{ url_for('login') }}" class="text-slate-600 hover:text-primary font-medium transition"
           id="nav-login-link">Log In</a>
         <a href="{{ url_for('signup') }}"
@@ -108,10 +114,16 @@
           Found</a>
         <a href="{{ url_for('profile') }}"
           class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">Profile</a>
+        <a href="{{ url_for('assistant_page') }}"
+          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">AI
+          Assistant</a>
         <a href="{{ url_for('logout') }}"
           class="block text-center mt-4 bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3 rounded-xl font-bold transition">Log
           Out</a>
         {% else %}
+        <a href="{{ url_for('assistant_page') }}"
+          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">AI
+          Assistant</a>
         <a href="{{ url_for('login') }}"
           class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition text-center">Log
           In</a>
@@ -154,9 +166,12 @@
   </footer>
 
   <!-- Global Map Modal -->
-  <div id="global-map-modal" class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0" style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
-    <div id="global-map-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-4xl overflow-hidden transform scale-95 transition-all duration-300">
-      
+  <div id="global-map-modal"
+    class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0"
+    style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
+    <div id="global-map-modal-card"
+      class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-4xl overflow-hidden transform scale-95 transition-all duration-300">
+
       <!-- Modal Header -->
       <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
         <div class="flex items-center gap-2">
@@ -166,7 +181,9 @@
             <p class="text-xs text-slate-400 font-medium select-all" id="global-map-subtitle">Item Location Details</p>
           </div>
         </div>
-        <button onclick="closeLocationMap()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none" aria-label="Close Map">
+        <button onclick="closeLocationMap()"
+          class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none"
+          aria-label="Close Map">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -179,9 +196,11 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500 font-semibold">
+      <div
+        class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500 font-semibold">
         <span id="global-map-status" class="text-indigo-600 font-semibold">Interactive Map</span>
-        <button onclick="closeLocationMap()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl transition">
+        <button onclick="closeLocationMap()"
+          class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl transition">
           Close
         </button>
       </div>
@@ -266,7 +285,7 @@
           locationLabel = locationStr;
         } else {
           // 2. Try matching a known landmark (case insensitive search)
-          const matchedLandmark = campusLandmarks.find(l => 
+          const matchedLandmark = campusLandmarks.find(l =>
             locationStr.toLowerCase().includes(l.name.toLowerCase())
           );
           if (matchedLandmark) {
@@ -352,7 +371,7 @@
         }
 
         globalModalMarker.bindTooltip(locationLabel, { permanent: true, direction: 'top', offset: [0, -5] }).openTooltip();
-        
+
         globalModalMap.invalidateSize();
       }, 150);
     }
@@ -373,7 +392,7 @@
     }
 
     // Attach listeners for escape key and outside click to close
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         closeLocationMap();
       }
@@ -396,7 +415,7 @@
 
       const modal = document.getElementById('global-map-modal');
       if (modal) {
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
           if (e.target === modal) {
             closeLocationMap();
           }
@@ -437,6 +456,21 @@
       }
     });
   </script>
+
+  <!-- ====================================================== -->
+
+  <!-- Floating AI Assistant Chat Bubble Link -->
+  <a href="{{ url_for('assistant_page') }}"
+     class="assistant-bubble"
+     aria-label="Open AI Assistant">
+    <span class="assistant-ping-container">
+      <span class="assistant-ping-pulse"></span>
+      <span class="assistant-ping-dot"></span>
+    </span>
+    <svg xmlns="http://www.w3.org/2000/svg" style="width: 28px; height: 28px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+  </a>
 </body>
 
 </html>

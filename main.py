@@ -722,7 +722,7 @@ def assistant_page():
         print(f"Error loading assistant history: {e}")
         history = []
         
-        try:
+    try:
         all_entries = database.get_entries()
         active_items = [item for item in all_entries if item.get('status') == 'active']
     except Exception as e:

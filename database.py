@@ -2,8 +2,31 @@ import os
 import secrets
 from datetime import datetime
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 load_dotenv()
+
+def get_embeddings(item):
+    fields = [
+        item.get('title'),
+        item.get('description'),
+        item.get('location'),
+        item.get('category'),
+    ]
+    text = " ".join([str(f).strip() for f in fields if f is not None])
+    
+    try:
+        result = genai.embed_content(
+            model="models/gemini-embedding-2",
+            content=text,
+            task_type="retrieval_document",
+            output_dimensionality=256
+        )
+        embedding = result['embedding']
+    except Exception as e:
+        print(f"Error generating embeddings: {e}")
+        return None
+    return embedding
 
 try:
     from supabase import create_client, Client
@@ -66,8 +89,13 @@ def update_user_verification(email, verified=True):
 
 
 #ENTRY DB      
+columnsItem = ["id","title","category", "description", "type", "location", "status", "reporterid", "createdat", "updatedat", "photourl", "losttime", "claimsmade", "resolvedto"]
+
 def create_lost_entry(item_data):
+    embedding = get_embeddings(item_data)
     item_data["id"] = f"itm_{secrets.token_urlsafe(8)}"
+    if embedding:
+        item_data["embedding"] = embedding
     response = supabase.table("Item").insert(item_data).execute()
     print(f"Successfully created lost item in Supabase: {item_data['title']}")
 
@@ -80,29 +108,35 @@ def update_item_entry(item_id, email, title, category, location, description, lo
         "losttime": losttime,
         "updatedat" : datetime.now().strftime("%b-%d-%Y %H:%M:%S")
     }
+    embedding = get_embeddings(update_data)
+    if embedding:
+        update_data["embedding"] = embedding
     response = supabase.table("Item").update(update_data).eq("id", item_id).eq("reporterid", email).execute()
     print(f"Successfully updated item {item_id} in Supabase: {title}")
     return response.data
 
 def create_found_entry(item_data):
     item_data["id"] = f"itm_{secrets.token_urlsafe(8)}"
+    embedding = get_embeddings(item_data)
+    if embedding:
+        item_data["embedding"] = embedding
     response = supabase.table("Item").insert(item_data).execute()
     print(f"Successfully created found item in Supabase: {item_data['title']}")
 
 def get_lost_entries():
-    response = supabase.table("Item").select("*").eq("type", "lost").execute()
+    response = supabase.table("Item").select(columnsItem).eq("type", "lost").execute()
     return response.data
 
 def get_lost_entries_by_user(email):
-    response = supabase.table("Item").select("*").eq("type", "lost").eq("reporterid", email).execute()
+    response = supabase.table("Item").select(columnsItem).eq("type", "lost").eq("reporterid", email).execute()
     return response.data
 
 def get_found_entries():
-    response = supabase.table("Item").select("*").eq("type", "found").execute()
+    response = supabase.table("Item").select(columnsItem).eq("type", "found").execute()
     return response.data
 
 def get_found_entries_by_user(email):
-    response = supabase.table("Item").select("*").eq("type", "found").eq("reporterid", email).execute()
+    response = supabase.table("Item").select(columnsItem).eq("type", "found").eq("reporterid", email).execute()
     return response.data
 
 def resolve_entry(item_id, email):
@@ -114,7 +148,7 @@ def delete_entry(item_id, email):
     return response.data
 
 def get_item_by_id(item_id):
-    response = supabase.table("Item").select("*").eq("id", item_id).execute()
+    response = supabase.table("Item").select(columnsItem).eq("id", item_id).execute()
     if response.data:
         return response.data[0]
     return None
@@ -143,11 +177,15 @@ def save_chat(msg_data):
 
 # ASSISTANT DB
 def get_entries():
-    response = supabase.table("Item").select("*").execute()
+    response = supabase.table("Item").select(columnsItem).execute()
     return response.data
 
 def get_entries_by_user(email):
-    response = supabase.table("Item").select("*").eq("reporterid", email).execute()
+    response = supabase.table("Item").select(columnsItem).eq("reporterid", email).execute()
+    return response.data
+
+def get_entries_with_embeddings():
+    response = supabase.table("Item").select("*").execute()
     return response.data
 
 def save_assistant_query(user_email, sender, message):
@@ -189,5 +227,3 @@ def resolve_claim(email, item_id, resolved_to_id):
     response = supabase.table("Item").update({"resolvedto": resolved_to_id, "status": "resolved"}).eq("id", item_id).eq("reporterid", email).execute()
     print(f"Successfully resolved claim for {email} to item {item_id}")
     return response.data
-    
-    

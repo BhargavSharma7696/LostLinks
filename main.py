@@ -538,9 +538,14 @@ def resolve_item(item_id):
         flash("Please log in to resolve items.", "error")
         return redirect(url_for('login'))
     
+    resolved_to = request.form.get("resolved_to")
+    if not resolved_to:
+        flash("Please select a claimant to resolve the item to.", "error")
+        return redirect(request.referrer or url_for('dashboard'))
+        
     try:
-        database.resolve_entry(item_id, session['user_email'])
-        flash("Report marked as resolved successfully!", "success")
+        database.resolve_claim(session['user_email'], item_id, resolved_to)
+        flash(f"Item resolved and successfully handed over to {resolved_to}!", "success")
     except Exception as e:
         flash(f"Error resolving report: {str(e)}", "error")
         
@@ -801,7 +806,7 @@ def claim_item():
     
     if not item_id:
         flash("Item ID is missing.", "error")
-        return redirect(url_for("chat", item_id=item_id))
+        return redirect(url_for("dashboard"))
     
     item = database.get_item_by_id(item_id)
     if not item:
@@ -836,7 +841,7 @@ def resolve_to():
     
     if not item_id:
         flash("Item ID is missing.", "error")
-        return redirect(url_for("chat", item_id=item_id))
+        return redirect(url_for("dashboard"))
     
     item = database.get_item_by_id(item_id)
     if not item:

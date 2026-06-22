@@ -99,6 +99,9 @@
                 <p><b>Status:</b> 
                   {% if entry.status == 'resolved' %}
                     <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold ml-1">Resolved</span>
+                    {% if entry.resolvedto %}
+                      <span class="text-xs text-slate-500 block mt-1">Resolved to: <b class="text-indigo-600">{{ entry.resolvedto }}</b></span>
+                    {% endif %}
                   {% else %}
                     <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold ml-1">Active</span>
                   {% endif %}
@@ -113,24 +116,33 @@
                 </div>
               {% endif %}
               {% if entry.status != 'resolved' %}
-                <div class="grid grid-cols-2 gap-2 mt-2">
+                <div class="flex flex-col gap-2 mt-2">
                   {% if entry.claimsmade %}
-                    <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to mark this item as resolved?');" class="w-full">
-                      <button type="submit" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold py-2 rounded-lg transition cursor-pointer">
-                        Resolve
+                    <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" class="w-full flex flex-col gap-1" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
+                      <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                        <option value="" disabled selected>Select Claimant to Resolve</option>
+                        {% for claimant in entry.claimsmade %}
+                          <option value="{{ claimant }}">{{ claimant }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-[10px] font-bold py-2 rounded-lg transition shadow-md shadow-emerald-100 hover:shadow-lg hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1">
+                        Confirm Resolve
                       </button>
                     </form>
                   {% endif %}
-                  <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');" class="w-full {% if not entry.claimsmade %}col-span-2{% endif %}">
-                    <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold py-2 rounded-lg transition cursor-pointer">
-                      Delete
-                    </button>
-                  </form>
-                  <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET" class="col-span-2 mt-1">
-                    <button type="submit" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-lg transition cursor-pointer">
-                      Update Listing
-                    </button>
-                  </form>
+                  
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');" class="w-full col-span-2">
+                      <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold py-2 rounded-lg transition cursor-pointer">
+                        Delete Listing
+                      </button>
+                    </form>
+                    <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET" class="col-span-2">
+                      <button type="submit" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-lg transition cursor-pointer">
+                        Update Listing
+                      </button>
+                    </form>
+                  </div>
                 </div>
               {% endif %}
             </div>

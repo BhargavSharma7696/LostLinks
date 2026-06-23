@@ -6,7 +6,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.graph.message import add_messages
 from dotenv import load_dotenv
 import os
-from typing import Annotated, Literal, Optional, Sequence, TypedDict, List, Dict
+from typing import Annotated, Literal, Optional, Sequence, TypedDict, List, Dict, Any, Union
 from langchain_core.tools import tool
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from sklearn.metrics.pairwise import cosine_similarity
@@ -25,6 +25,7 @@ You have access to these tools:
 - fetch_reported_by_user(email): Retrieves all reports submitted by a specific user. Use this when a user asks about their own reports or items they have submitted.
 - fetch_items_nearby(location): Retrieves active items that are nearby a specific campus landmark. Always use this tool when a user asks about items lost, found, or reported near a particular location (e.g., a hostel, Mess, ground, parking, etc.).
 - fetch_similar_items(query_text): Retrieves items similar to the query_text using vector similarity. Always use this tool when a user asks about items similar to a given text.
+- make_report(email, title, description, location, category, losttime, image, type): Makes a report for a lost or found item. Always use this tool when a user asks to make a report for a lost or found item.
 
 ### 2. WEBAPP NAVIGATION & URL MAPPING
 When advising users on how to perform actions, direct them to the appropriate pages using these routes:
@@ -57,7 +58,28 @@ When advising users on how to perform actions, direct them to the appropriate pa
   - Edit Profile: [Edit Profile](/update-profile)
   - Chat Room: [Chat Room](/chat/<item_id>)
 - Missing Information: If a user asks a query like "Did anyone find my watch?", ask them for key details like the color, brand, or the location where they lost it to narrow down the search. If they ask "What did I report?", use the session email to use fetch_reported_by_user.
-- Read-Only Agent: You cannot create, update, or delete items directly. If a user asks you to "report a lost wallet", politely instruct them to navigate to the Report Lost page at [Report Lost](/report-lost)."""
+- Read-Only Agent (Except a TOOL CALL called `make_report`): You cannot create, update, or delete items directly. If a user asks you to "report a lost wallet" or "report a bag found", use the tool `make_report()` to make the report.
+  - For reporting a FOUND item, uploading/attaching an image is MANDATORY. If the user has not uploaded/attached an image, you MUST ask them to attach or upload an image using the attachment button (📎) next to the chat input before you can submit the report.
+  - Do not hallucinate. You can only edit the database when this tool call is made.
+
+### 5. RESPONSE GENERATION RULES
+- Keep responses concise and to the point. Do not repeat information that is already known. 
+- Do not use any special characters or formatting that may not render properly in markdown. 
+- Do not use any emojis or emoticons.
+- Do not use any HTML tags or attributes.
+- Do not use any JavaScript code.
+- Do not use any CSS code.
+
+### 6. EXTRA KNOWLEDGE
+- For your knowledge about locations, use this dictionary: LANDMARKS. 
+- For your knowledge on categories of item lost, use this list: CATEGORIES. 
+
+### 7. INSTRCTIONS WHILE USING TOOL "make_report(email, title, description, location, category, losttime, image, type)" 
+- if you have image, location and losttime, auto generate title, description, category. And before execution confirm from user
+
+"""
+
+CATEGORIES = ["Electronics", "Book & Documents", "Clothing", "Accessories", "Keys & Wallets", "Sports & Fitness", "Other"]
 
 LANDMARKS = {"kanhar" : (21.2448, 81.3219),
       "shivnath" : (21.2406, 81.32015),
@@ -118,6 +140,7 @@ class AgentState(TypedDict):
     items_reported_by_specific_user: Dict
     nearby_items: Dict
     similar_items: Dict
+    report_tool : Union[Dict, str]
 
 @tool
 def fetch_items() -> dict:
@@ -259,11 +282,140 @@ def fetch_similar_items(query_text):
 
     return {"similar_items": similar_items}
 
-tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, fetch_similar_items]
+def analyze_item_image(image_url: str):
+    import urllib.request
+    import json
+    
+    try:
+        req = urllib.request.Request(
+            image_url, 
+            headers={'User-Agent': 'Mozilla/5.0'}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            image_bytes = response.read()
+        mime_type = response.info().get_content_type()
+        if not mime_type or not mime_type.startswith("image/"):
+            mime_type = "image/jpeg"
+    except Exception as e:
+        print(f"Error fetching image from URL {image_url}: {e}")
+        return None, None
+
+    prompt = """Analyze the image of this found/lost item. Determine its category and provide a brief description.
+    You MUST output a valid JSON object matching this schema:
+    {
+      "category": "Electronics" | "Documents" | "Keys/Wallets" | "Clothing" | "Accessories" | "Sports & Fitness" | "Other",
+      "description": "Concise description detailing color, brand, distinct features, and condition (2-3 sentences max)"
+    }
+    """
+    
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content([
+            {"mime_type": mime_type, "data": image_bytes},
+            prompt
+        ], generation_config={"response_mime_type": "application/json"})
+        
+        data = json.loads(response.text)
+        return data.get("category"), data.get("description")
+    except Exception as e:
+        print(f"Error generating description from image: {e}")
+        return None, None
+
+@tool
+def make_report(email = None, title = None, description = None, location = None, category = None, image = None, type = None, losttime = None):
+    """
+    If the user provides details about any founding or lost item, use this tool to make a report for the user.
+    If reporting a found item (type='found'), 'image' is strictly MANDATORY. If reporting a lost item, 'image' is optional.
+    If all arguments are provided, use this tool to make a report for the user, else prompt user to provide the details of item.
+    If you are provided with an image auto generate the details for it such as a title, description, get category, using the function analyze_item_image.
+    Args:
+        email: The email of the user
+        title: The title of the item
+        description: The description of the item
+        location: The location of the item
+        category: The category of the item
+        losttime: The time of the item lost/found
+        image: The image of the item
+        type: The type of the item (lost or found)
+    Returns:
+        A dictionary containing the report.
+    """
+    
+    if type == "found":
+        if not image or not image.strip():
+            take_image_input = True
+            return {"report_tool": "An image of the found item is mandatory. Please ask the user to upload or capture a photo first using the attachment button (📎) next to the chat input."}
+        if not email or not title or not losttime or not location:
+            return {"report_tool": "Please provide atleast basic details: email, title, location, found time"}
+        
+        if not description or not category:
+            gen_cat, gen_desc = analyze_item_image(image)
+            if not category and gen_cat:
+                category = gen_cat
+            if not description and gen_desc:
+                description = gen_desc
+                
+        if not category:
+            category = "Other"
+        if not description:
+            description = f"A found item reported as '{title}'."
+
+        item = {
+            "reporterid": email,
+            "type": "found",
+            "title": title,
+            "description": description,
+            "location": location,
+            "category": category,
+            "losttime": losttime,
+            "photourl": image
+        }
+        try:
+            print(item)
+            database.create_found_entry(item)
+            return {"report_tool": f"Success: Found item '{title}' has been reported successfully."}
+        except Exception as e:
+            return {"report_tool": f"Error reporting found item: {str(e)}"}
+            
+    elif type == "lost":
+        if not email or not title:
+            return {"report_tool": "Please provide at least email and title."}
+            
+        if image and image.strip() and (not description or not category):
+            gen_cat, gen_desc = analyze_item_image(image)
+            if not category and gen_cat:
+                category = gen_cat
+            if not description and gen_desc:
+                description = gen_desc
+                
+        if not category:
+            category = "Other"
+        if not description:
+            description = f"A lost item reported as '{title}'."
+
+        item = {
+            "reporterid": email,
+            "type": "lost",
+            "title": title,
+            "description": description,
+            "location": location,
+            "category": category,
+            "losttime": losttime,
+            "photourl": image
+        }
+        try:
+            database.create_lost_entry(item)
+            return {"report_tool": f"Success: Lost item '{title}' has been reported successfully."}
+        except Exception as e:
+            return {"report_tool": f"Error reporting lost item: {str(e)}"}
+    else:
+        return {"report_tool": "Please provide all the details about the item."}
+
+tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, fetch_similar_items, make_report]
 tool_node = ToolNode(tools)
 
-# llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0)
-llm = ChatGroq(model_name = "openai/gpt-oss-20b", temperature = 0.0)
+llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0)
+# llm = ChatGroq(model_name = "openai/gpt-oss-20b", temperature = 0.0)
 model = llm.bind_tools(tools)
 
 def chat_node(state: AgentState, config):
@@ -285,12 +437,18 @@ app.add_edge("tool_node", "chat")
 app = app.compile(checkpointer = MemorySaver())
 
 if __name__ == "__main__":
-    config = {"configurable":{"thread_id": "1"}}
+    config = {"configurable":{"thread_id": "sumiranvithhal@iitbhilai.ac.in"}}
     while True:
         user_input = input("User: ")
         if user_input == "exit":
             break
         result= app.invoke({"messages": [HumanMessage(content=user_input)]}, config = config)
-        print("="*75)
-        print(result["messages"][-1].content)
+        # for chunk in app.stream({"messages": [HumanMessage(content=user_input)]}, config = config, stream_mode = "messages", stream_events = True):
+        #     print(chunk)
+        #     if chunk["type"] == "messages":
+        #         msg_chunk, metadata = chunk["data"]
+        #         if msg_chunk.content:
+        #             print(msg_chunk.content, end = "", flush = True)
+        print("\n" + "="*75)
+        print(result["messages"])
         print("="*75)

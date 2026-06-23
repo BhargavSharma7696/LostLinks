@@ -604,3 +604,92 @@
   font-size: 12.5px;
 }
 
+/* Ensure table container has horizontal scroll enabled if columns overflow */
+.msg-assistant-content .overflow-x-auto {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+/* Scrollable Chat Window & UI Layout Corrections */
+.chat-bubble-user img,
+.chat-bubble-assistant img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Desktop Layout Constraints when Chat is Active */
+@media (min-width: 769px) {
+  .active-chat-container {
+    height: 80vh !important;
+    max-height: 80vh !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow: hidden !important;
+    padding: 0 !important; /* Remove large padding so columns can stretch fully to the edges */
+  }
+
+  .active-chat-container .sidebar-panel {
+    height: 100% !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 24px !important;
+    box-sizing: border-box !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .active-chat-container .chat-panel {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .active-chat-container #chat-messages-log {
+    flex: 1 1 0% !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* Responsive constraints to keep chat container scrollable and fixed height on mobile */
+@media (max-width: 768px) {
+  .active-chat-container {
+    height: 85vh !important;
+    max-height: 85vh !important;
+    padding: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    overflow: hidden !important;
+  }
+
+  .active-chat-container .sidebar-panel {
+    height: 140px !important;
+    max-height: 140px !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 12px !important;
+    overflow-y: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .active-chat-container .chat-panel {
+    flex: 1 1 0% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .active-chat-container #chat-messages-log {
+    flex: 1 1 0% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+  }
+}
+

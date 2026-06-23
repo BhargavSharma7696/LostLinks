@@ -379,10 +379,6 @@ def report_lost():
         if not title or not title.strip():
             flash("Title is required.", "error")
             return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
-
-        if not location or not location.strip():
-            flash("Location is required.", "error")
-            return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
         
         if not description or not description.strip():
             flash("Description is required.", "error")
@@ -390,10 +386,6 @@ def report_lost():
 
         if not category or not category.strip():
             flash("Category is required.", "error")
-            return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
-        
-        if not losttime or not losttime.strip():
-            flash("Lost time is required.", "error")
             return render_template('report-lost.html', email=user_email, user_lost_entries=user_lost_entries)
         
         try:
@@ -423,10 +415,10 @@ def report_lost():
                 "type" : "lost",
                 "title" : title.strip(),
                 "category" : category,
-                "location" : location.strip(),
+                "location" : location.strip() or None,
                 "description" : description.strip(),
-                "photourl" : photo_url,
-                "losttime" : losttime,
+                "photourl" : photo_url or None,
+                "losttime" : losttime or None,
             }
             database.create_lost_entry(item)
             flash("Lost item reported successfully!", "success")
@@ -766,11 +758,34 @@ def assistant_page():
 
     if request.method == 'POST':
         message = request.form.get('message', '').strip()
-        if message:
-            database.save_assistant_query(email, "user", message)
+        photo_file = request.files.get('photo')
+        
+        photo_url = None
+        if photo_file and photo_file.filename != "":
+            try:
+                photo_url = upload_photo(photo_file, None)
+            except Exception as e:
+                print(f"Error uploading assistant attachment: {e}")
+
+        if message or photo_url:
+            agent_msg_content = message
+            display_message = message
+
+            if photo_url:
+                if agent_msg_content:
+                    agent_msg_content += f"\n\n[Attached Image: {photo_url}]"
+                else:
+                    agent_msg_content = f"[Attached Image: {photo_url}]"
+                
+                if display_message:
+                    display_message += f"\n\n[Attached Image]({photo_url})"
+                else:
+                    display_message = f"[Attached Image]({photo_url})"
+
+            database.save_assistant_query(email, "user", display_message)
             config = {"configurable": {"thread_id": email}}
             try:
-                result = assistant_app.invoke({"messages": [HumanMessage(content=message)]}, config=config)
+                result = assistant_app.invoke({"messages": [HumanMessage(content=agent_msg_content)]}, config=config)
                 response_text = result["messages"][-1].content
             except Exception as e:
                 print(f"Error invoking AI assistant: {e}")

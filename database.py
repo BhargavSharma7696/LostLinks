@@ -95,7 +95,7 @@ def create_lost_entry(item_data):
     embedding = get_embeddings(item_data)
     item_data["id"] = f"itm_{secrets.token_urlsafe(8)}"
     if embedding:
-        item_data["embedding"] = embedding
+        item_data["embeddings"] = str(embedding)
     response = supabase.table("Item").insert(item_data).execute()
     print(f"Successfully created lost item in Supabase: {item_data['title']}")
 
@@ -110,7 +110,7 @@ def update_item_entry(item_id, email, title, category, location, description, lo
     }
     embedding = get_embeddings(update_data)
     if embedding:
-        update_data["embedding"] = embedding
+        update_data["embeddings"] = str(embedding)
     response = supabase.table("Item").update(update_data).eq("id", item_id).eq("reporterid", email).execute()
     print(f"Successfully updated item {item_id} in Supabase: {title}")
     return response.data
@@ -119,7 +119,9 @@ def create_found_entry(item_data):
     item_data["id"] = f"itm_{secrets.token_urlsafe(8)}"
     embedding = get_embeddings(item_data)
     if embedding:
-        item_data["embedding"] = embedding
+        item_data["embeddings"] = str(embedding)
+    else :
+        item_data["embeddings"] = None
     response = supabase.table("Item").insert(item_data).execute()
     print(f"Successfully created found item in Supabase: {item_data['title']}")
 

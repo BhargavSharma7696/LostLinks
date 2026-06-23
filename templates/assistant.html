@@ -6,7 +6,7 @@
 {% if show_history %}
   <!-- Active Discussion Interface (Split-Pane View) -->
   <div class="flex items-center justify-center min-h-[80vh] py-6 animate-fade-in-up">
-    <div class="assistant-page-container rounded-[24px] flex flex-col md:flex-row w-full max-w-8xl h-auto md:h-[80vh] overflow-hidden relative">
+    <div class="assistant-page-container active-chat-container rounded-[24px] flex flex-col md:flex-row w-full max-w-8xl h-auto md:h-[80vh] overflow-hidden relative">
       
       <!-- Subtle internal glow for chat dashboard -->
       <div style="position: absolute; top: 10%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(99, 102, 241, 0) 70%); filter: blur(50px); pointer-events: none; z-index: 0;"></div>
@@ -141,8 +141,26 @@
         
         <!-- Chat Input Send Area -->
         <div class="chat-input-area shrink-0">
-          <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
+          <!-- Preview Container for Attached Photo -->
+          <div id="chat-upload-preview-container" class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 shrink-0 relative z-20 animate-fade-in-up">
+            <img id="chat-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950" alt="Attached preview">
+            <div class="flex-1 min-w-0">
+              <p id="chat-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
+              <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Ready to send</p>
+            </div>
+            <button type="button" class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors" onclick="clearChatUpload()" title="Remove Photo">&times;</button>
+          </div>
+
+          <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data" onsubmit="showLoadingState('chat')">
             <div class="chat-input-wrapper">
+              <!-- Attachment Button -->
+              <button type="button" id="chat-attach-btn" class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2" onclick="document.getElementById('chat-photo-file').click()" title="Attach Photo">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
+              <input type="file" name="photo" id="chat-photo-file" accept="image/*" class="hidden" onchange="previewChatUpload(this)">
+
               <input 
                 type="text" 
                 name="message" 
@@ -194,9 +212,25 @@
         </p>
 
         <!-- Centered Input Search Form -->
-        <form action="{{ url_for('assistant_page') }}" method="POST" class="w-full max-w-2xl mx-auto mb-8" onsubmit="showLoadingState('hero')">
+        <!-- Preview Container for Landing Page Photo -->
+        <div id="hero-upload-preview-container" class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 max-w-2xl mx-auto text-left relative z-20 animate-fade-in-up">
+          <img id="hero-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950" alt="Attached preview">
+          <div class="flex-1 min-w-0">
+            <p id="hero-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
+            <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Ready to send</p>
+          </div>
+          <button type="button" class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors" onclick="clearHeroUpload()" title="Remove Photo">&times;</button>
+        </div>
+
+        <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data" class="w-full max-w-2xl mx-auto mb-8" onsubmit="showLoadingState('hero')">
           <div class="chat-input-wrapper" style="padding: 6px 6px 6px 16px;">
-            <span class="text-slate-400" style="font-size: 1.25rem; user-select: none;">🤖</span>
+            <button type="button" id="hero-attach-btn" class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2 shrink-0" onclick="document.getElementById('hero-photo-file').click()" title="Attach Photo">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
+            <input type="file" name="photo" id="hero-photo-file" accept="image/*" class="hidden" onchange="previewHeroUpload(this)">
+
             <input 
               type="text" 
               name="message" 
@@ -207,7 +241,7 @@
               autocomplete="off"
               autofocus
             >
-            <button type="submit" id="hero-chat-send-btn" class="chat-send-btn-new" style="width: auto; height: auto; padding: 10px 24px; border-radius: 9999px;">
+            <button type="submit" id="hero-chat-send-btn" class="chat-send-btn-new shrink-0" style="width: auto; height: auto; padding: 10px 24px; border-radius: 9999px;">
               Search AI
             </button>
           </div>
@@ -336,6 +370,52 @@
 </style>
 
 <script>
+  // Chat file upload preview logic
+  function previewChatUpload(input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('chat-upload-preview').src = e.target.result;
+        document.getElementById('chat-upload-filename').textContent = file.name;
+        document.getElementById('chat-upload-preview-container').classList.remove('hidden');
+        document.getElementById('chat-message-input').removeAttribute('required');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function clearChatUpload() {
+    document.getElementById('chat-photo-file').value = '';
+    document.getElementById('chat-upload-preview-container').classList.add('hidden');
+    document.getElementById('chat-upload-preview').src = '';
+    document.getElementById('chat-upload-filename').textContent = '';
+    document.getElementById('chat-message-input').setAttribute('required', '');
+  }
+
+  // Landing/Hero file upload preview logic
+  function previewHeroUpload(input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('hero-upload-preview').src = e.target.result;
+        document.getElementById('hero-upload-filename').textContent = file.name;
+        document.getElementById('hero-upload-preview-container').classList.remove('hidden');
+        document.getElementById('hero-chat-message-input').removeAttribute('required');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function clearHeroUpload() {
+    document.getElementById('hero-photo-file').value = '';
+    document.getElementById('hero-upload-preview-container').classList.add('hidden');
+    document.getElementById('hero-upload-preview').src = '';
+    document.getElementById('hero-upload-filename').textContent = '';
+    document.getElementById('hero-chat-message-input').setAttribute('required', '');
+  }
+
   // Auto-scroll chat log stream to bottom on load (only if history exists)
   function scrollToBottom() {
     const log = document.getElementById('chat-messages-log');

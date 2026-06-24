@@ -397,10 +397,14 @@ def make_report(email = None, title = None, description = None, location = None,
 tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, fetch_similar_items, make_report]
 tool_node = ToolNode(tools)
 
-# llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0)
-# llm = ChatGroq(model_name = "openai/gpt-oss-20b", temperature = 0.0)
-llm = ChatGroq(model_name = "llama-3.3-70b-versatile", temperature = 0)
-model = llm.bind_tools(tools)
+llm1 = ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.0)
+llm2 = ChatGroq(model_name = "openai/gpt-oss-20b", temperature = 0.0)
+llm3 = ChatGroq(model_name = "llama-3.1-8b-instant", temperature = 0)
+model1 = llm1.bind_tools(tools)
+model2 = llm2.bind_tools(tools)
+model3 = llm3.bind_tools(tools)
+
+models = [model1, model2, model3]
 
 def chat_node(state: AgentState, config):
     """Interact with LLM to generate a response"""
@@ -409,7 +413,13 @@ def chat_node(state: AgentState, config):
         content=system_message.content + f"\n\n### CURRENT USER CONTEXT\nThe email of the user you are currently chatting with is: '{email}'. When executing fetch_reported_by_user, ALWAYS pass this email as the argument."
     )
     messages = [dynamic_system_message] + state["messages"]
-    return {"messages": model.invoke(messages)}
+    for model in models:
+        try:
+            response = model.invoke(messages)
+            if response.tool_calls:
+                return {"messages": response}
+        except Exception as e:
+            continue
 
 app = StateGraph(AgentState)
 app.add_node("chat", chat_node)

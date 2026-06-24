@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+node_modules/
+package-lock.json
+package.json
+tailwind.config.js
+Dockerfile
+.dockerignore

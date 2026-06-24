@@ -780,18 +780,12 @@ def assistant_page():
                     display_message = f"[Attached Image]({photo_url})"
 
             database.save_assistant_query(email, "user", display_message)
-            config = {"configurable": {"thread_id": email}}
+
+            response_text =""
             try:
+                config = {"configurable": {"thread_id": email}}
                 result = assistant_app.invoke({"messages": [HumanMessage(content=agent_msg_content)]}, config=config)
-                for node_name, output in result.items():
-                    if node_name == "tools":
-                        if output["messages"]:
-                            last_msg = output["messages"][-1]
-                            response_text = last_msg.content
-                    elif node_name == "llm":
-                        if output["messages"]:
-                            last_msg = output["messages"][-1]
-                            response_text = last_msg.content
+                response_text = result["messages"][-1].content
             except Exception as e:
                 print(f"Error invoking AI assistant: {e}")
                 response_text = "Sorry, I am facing an issue processing your request right now."

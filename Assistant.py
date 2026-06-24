@@ -13,6 +13,7 @@ import difflib, re, requests, base64, os
 import google.generativeai as genai
 from pydantic import BaseModel, Field
 
+
 system_message_content = """You are the "LostLinks Assistant", the official AI helper for LostLinks—a smart web portal designed to help users report, find, and recover lost belongings.
 
 Your role is to assist users in querying the database for lost/found items, finding their own reports, and guiding them on how to navigate the web application.
@@ -352,7 +353,7 @@ def make_report(email = None, title = None, description = None, location = None,
         if not image or not image.strip():
             return {"report_tool": "An image of the found item is mandatory. Please ask the user to upload or capture a photo first using the attachment button (📎) next to the chat input."}
         if not email or not losttime or not location:
-            return {"report_tool": "Please provide atleast basic details: email, location, found time"}
+            return {"report_tool": "Please provide atleast basic details: location, found time"}
         if not title or not category or not description:
             analysis = analyze_item_image(image)
             title = analysis["analysis"].title
@@ -377,7 +378,7 @@ def make_report(email = None, title = None, description = None, location = None,
             
     elif type == "lost":
         if not email or not title:
-            return {"report_tool": "Please provide at least email and title."}
+            return {"report_tool": "Please provide at least title."}
             
         if image and image.strip() and (not description or not category):
             analysis = analyze_item_image(image)    
@@ -428,15 +429,16 @@ app.add_node("tool_node", tool_node)
 app.add_edge(START, "chat")
 app.add_conditional_edges("chat", tools_condition, {"tools": "tool_node", END: END})
 app.add_edge("tool_node", "chat")
-app = app.compile()
+app = app.compile(checkpointer=MemorySaver())
 
 
 # if __name__ == "__main__":
 #     while True:
+#         thread_id = "23"
 #         user_input = input("User: ")
 #         if user_input.lower() == "exit":
 #             break
-#         response = app.invoke({"messages": [HumanMessage(content=user_input)]})
+#         response = app.invoke({"messages": [HumanMessage(content=user_input)]}, config={"configurable": {"thread_id": thread_id}})
 #         print("Assistant: ", response["messages"][-1].content)
 #         print("="*81)
 #         print(response["messages"])

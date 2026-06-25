@@ -327,7 +327,7 @@ def update_profile():
         
         if not display_name or not display_name.strip():
             flash("Display name is required.", "error")
-            return render_template('update_profile.html')
+            return render_template('update_profile.html', email=session['user_email'], user=user)
         
         try:
             database.update_user(
@@ -501,6 +501,9 @@ def report_found():
 
         try:
             photo_url = upload_photo(photo_file, photo_base64)
+            if not photo_url:
+                flash("Failed to upload the photo to storage. Please try again.", "error")
+                return render_template('report-found.html', email=user_email, user_found_entries=user_found_entries)
 
             item = {
                 "reporterid" : user_email,
@@ -574,6 +577,12 @@ def update_item(item_id):
         description = request.form.get('description')
         losttime = request.form.get('lost-time')
 
+        photo_file = request.files.get('photo')
+        photo_base64 = request.form.get('photoBase64')
+        photo_url = None
+        if (photo_file and photo_file.filename != "") or (photo_base64 and photo_base64.strip() != ""):
+            photo_url = upload_photo(photo_file, photo_base64)
+
         title = title.strip() if title and title.strip() else item.get('title')
         category = category if category and category.strip() else item.get('category')
         location = location.strip() if location and location.strip() else item.get('location')
@@ -589,6 +598,7 @@ def update_item(item_id):
                 location=location,
                 description=description,
                 losttime=losttime,
+                photourl=photo_url
             )
             flash("Item updated successfully!", "success")
             if item.get('type') == 'found':
@@ -788,7 +798,11 @@ def assistant_page():
                 response_text = result["messages"][-1].content
             except Exception as e:
                 print(f"Error invoking AI assistant: {e}")
-                response_text = "Sorry, I am facing an issue processing your request right now."
+                err_msg = str(e).lower()
+                if any(x in err_msg for x in ["429", "rate_limit", "rate limit", "tpm", "rpm", "limit exceeded", "exhausted"]):
+                    response_text = "⚠️ **Rate Limit Exceeded:** The AI assistant is currently receiving too many requests (TPM/RPM exceeded). Please wait a few seconds and try again."
+                else:
+                    response_text = f"Sorry, I am facing an issue processing your request right now. (Error: {str(e)})"
             database.save_assistant_query(email, "assistant", response_text)
         return redirect(url_for('assistant_page', active=1))
     show_history = (request.args.get('active') == '1') or (request.args.get('show_history') == 'true')

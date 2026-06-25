@@ -133,9 +133,12 @@ system_message = SystemMessage(content=system_message_content)
 
 load_dotenv()
 
-os.environ["GROQ_API_KEY"] = os.getenv("groq")
-api_key = os.getenv("gemini_key")
-genai.configure(api_key=api_key)
+# Robust casing fallbacks for API Keys
+groq_key = os.getenv("groq") or os.getenv("GROQ_API_KEY")
+os.environ["GROQ_API_KEY"] = groq_key if groq_key else ""
+api_key = os.getenv("gemini_key") or os.getenv("GEMINI_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
 
 class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
@@ -311,24 +314,26 @@ def analyze_item_image(image_url: str) -> dict:
     except Exception as e:
         return {"error": f"Error downloading image: {str(e)}"}
     
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    
-    prompt = "Analyze this image of a lost or found item and extract its title, category, and a brief description."
-    
-    image_part = {
-        "mime_type": mime_type,
-        "data": image_bytes
-    }
-    
-    response = model.generate_content(
-        [prompt, image_part],
-        generation_config=genai.GenerationConfig(
-            response_mime_type="application/json",
-            response_schema=ImageAnalysis
+    try:
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
+        
+        prompt = "Analyze this image of a lost or found item and extract its title, category, and a brief description."
+        
+        image_part = {
+            "mime_type": mime_type,
+            "data": image_bytes
+        }
+        
+        response = model.generate_content(
+            [prompt, image_part],
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=ImageAnalysis
+            )
         )
-    )
-    
-    return {"analysis" : ImageAnalysis.model_validate_json(response.text)}
+        return {"analysis" : ImageAnalysis.model_validate_json(response.text)}
+    except Exception as e:
+        return {"error": f"Gemini API error: {str(e)}"}
 
 @tool
 def make_report(email = None, title = None, description = None, location = None, category = None, image = None, type = None, losttime = None):
@@ -356,6 +361,8 @@ def make_report(email = None, title = None, description = None, location = None,
             return {"report_tool": "Please provide atleast basic details: location, found time"}
         if not title or not category or not description:
             analysis = analyze_item_image(image)
+            if "error" in analysis:
+                return {"report_tool": f"Error analyzing image: {analysis['error']}. Please provide manual details (title, description, and category) or try again."}
             title = analysis["analysis"].title
             category = analysis["analysis"].category
             description = analysis["analysis"].description
@@ -382,6 +389,8 @@ def make_report(email = None, title = None, description = None, location = None,
             
         if image and image.strip() and (not description or not category):
             analysis = analyze_item_image(image)    
+            if "error" in analysis:
+                return {"report_tool": f"Error analyzing image: {analysis['error']}. Please provide manual details or try again."}
             title = analysis["analysis"].title
             category = analysis["analysis"].category
             description = analysis["analysis"].description
@@ -407,11 +416,28 @@ def make_report(email = None, title = None, description = None, location = None,
 tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, fetch_similar_items, make_report]
 tool_node = ToolNode(tools)
 
-# llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0)
-# llm = ChatGroq(model_name = "openai/gpt-oss-120b", temperature = 0.0)
-# llm = ChatGroq(model_name="llama-3.3-70b-versatile",temperature=0.0)
-llm = ChatGroq(model_name="qwen/qwen3.6-27b", temperature=0.0)
-model = llm.bind_tools(tools)
+def get_assistant_model():
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    
+    primary_llm = ChatGroq(
+        model_name="qwen/qwen3.6-27b",
+        temperature=0.0,
+        max_retries=3,
+        groq_api_key=groq_api_key
+    )
+    
+    fallback_llms = [
+        ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.0, max_retries=2, groq_api_key=groq_api_key),
+        ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0, max_retries=2, groq_api_key=groq_api_key),
+        ChatGroq(model_name="openai/gpt-oss-20b", temperature=0.0, max_retries=2, groq_api_key=groq_api_key)
+    ]
+    
+    primary_with_tools = primary_llm.bind_tools(tools)
+    fallbacks_with_tools = [m.bind_tools(tools) for m in fallback_llms]
+    
+    return primary_with_tools.with_fallbacks(fallbacks_with_tools)
+
+model = get_assistant_model()
 
 def chat_node(state: AgentState, config):
     """Interact with LLM to generate a response"""

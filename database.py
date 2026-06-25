@@ -106,7 +106,7 @@ def create_lost_entry(item_data):
     response = supabase.table("Item").insert(item_data).execute()
     print(f"Successfully created lost item in Supabase: {item_data['title']}")
 
-def update_item_entry(item_id, email, title, category, location, description, losttime):
+def update_item_entry(item_id, email, title, category, location, description, losttime, photourl=None):
     update_data = {
         "title": title,
         "category": category,
@@ -115,6 +115,8 @@ def update_item_entry(item_id, email, title, category, location, description, lo
         "losttime": losttime,
         "updatedat" : datetime.now().strftime("%b-%d-%Y %H:%M:%S")
     }
+    if photourl:
+        update_data["photourl"] = photourl
     embedding = get_embeddings(update_data)
     if embedding:
         update_data["embeddings"] = str(embedding)

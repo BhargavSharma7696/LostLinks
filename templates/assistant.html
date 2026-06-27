@@ -291,7 +291,7 @@
 
         <!-- Feature Capabilities Grid -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <div class="capability-card">
+          <div class="capability-card cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200" onclick="window.location.href='{{ url_for('dashboard', focus_search='true') }}'" onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.location.href='{{ url_for('dashboard', focus_search='true') }}'; }" role="button" tabindex="0" title="Go to Dashboard Search">
             <span class="capability-card-icon">🔍</span>
             <h3 class="capability-card-title">Real-time Search</h3>
             <p class="capability-card-desc">Scan database for active lost/found items</p>
@@ -301,15 +301,15 @@
             <h3 class="capability-card-title">Map Locations</h3>
             <p class="capability-card-desc">Trace coordinates and campus locations</p>
           </div>
-          <div class="capability-card">
-            <span class="capability-card-icon">💬</span>
-            <h3 class="capability-card-title">Direct Chat</h3>
-            <p class="capability-card-desc">Get inline links to chat with item reporters</p>
+          <div class="capability-card cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200" onclick="window.open('https://docs.google.com/spreadsheets/d/1V8U9kLiTn9JKs9ocapKkejxfizaqEIjQr_wej8RQyFw/edit?gid=334220690#gid=334220690', '_blank')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.open('https://docs.google.com/spreadsheets/d/1V8U9kLiTn9JKs9ocapKkejxfizaqEIjQr_wej8RQyFw/edit?gid=334220690#gid=334220690', '_blank'); }" role="button" tabindex="0" title="View Weekly Mess Menu Sheet">
+            <span class="capability-card-icon">🍽</span>
+            <h3 class="capability-card-title">Mess Menu</h3>
+            <p class="capability-card-desc">View the weekly campus mess menu excel sheet</p>
           </div>
-          <div class="capability-card">
-            <span class="capability-card-icon">📋</span>
-            <h3 class="capability-card-title">Easy Forms</h3>
-            <p class="capability-card-desc">Receive links and guidance on report listings</p>
+          <div class="capability-card cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200" onclick="window.open('https://www.iitbhilai.ac.in/index.php?pid=acad_course_2026_27M', '_blank')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.open('https://www.iitbhilai.ac.in/index.php?pid=acad_course_2026_27M', '_blank'); }" role="button" tabindex="0" title="View IIT Bhilai Academic Calender">
+            <span class="capability-card-icon">📆</span>
+            <h3 class="capability-card-title">IIT Bhilai Academic Calender</h3>
+            <p class="capability-card-desc">View the 2026-27M Academic Calender</p>
           </div>
         </div>
 

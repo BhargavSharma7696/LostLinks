@@ -289,6 +289,18 @@
     filterColumn('found-resolved-list', null, searchVal, categoryVal);
   }
 
+  // Focus search input if redirecting from Real-time Search card
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('focus_search') === 'true') {
+      const searchInput = document.getElementById('dashboard-search-input');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+
   function filterColumn(listId, noResultsId, query, categoryFilter) {
     const container = document.getElementById(listId);
     if (!container) return;

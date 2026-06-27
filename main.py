@@ -646,14 +646,44 @@ def send_chat():
         return redirect(url_for('chat', item_id=item_id))
 
     queryowner = database.get_reporter_id(item_id)
+    sender = session['user_email']
     
     if item_id and message and message.strip():
         database.save_chat({
             "itemid": item_id,
-            "sender": session['user_email'],
+            "sender": sender,
             "receiver": queryowner if queryowner else "public",
             "message": message.strip()
         })
+        
+        # Notify relevant users asynchronously
+        item_title = item.get("title", "your item")
+        subject = f"New Discussion Message: {item_title}"
+        heading = f"New message in discussion for '{item_title}'"
+        text_body = f"{sender} wrote:\n\"{message.strip()}\""
+        link_url = request.host_url + f"chat/{item_id}"
+        
+        if sender != queryowner:
+            # Sender is a claimant/viewer; notify the reporter
+            if queryowner:
+                send_notification_async(queryowner, subject, heading, text_body, link_url)
+        else:
+            # Sender is the reporter; notify all other users in this discussion thread
+            try:
+                chat_history = database.load_chat(item_id)
+                claimants = item.get("claimsmade") or []
+                if isinstance(claimants, str):
+                    claimants = [claimants]
+                    
+                recipients = set(claimants)
+                for msg in chat_history:
+                    if msg.get("sender") and msg.get("sender") != queryowner:
+                        recipients.add(msg.get("sender"))
+                        
+                for recipient in recipients:
+                    send_notification_async(recipient, subject, heading, text_body, link_url)
+            except Exception as ex:
+                print(f"Error resolving chat notification recipients: {ex}")
         
     return redirect(url_for('chat', item_id=item_id))
 
@@ -822,6 +852,88 @@ def assistant_page():
         
     return render_template("assistant.html", email=email, history=history, show_history=show_history, active_items=active_items)
 
+# Helper functions for asynchronous notification emails
+def send_notification(receiver_email, subject, heading, text_body, link_url=None):
+    import smtplib
+    from email.message import EmailMessage
+    from email.utils import formataddr
+    import os
+    
+    email_user = os.getenv("IMAP_EMAIL") or os.getenv("SMTP_EMAIL") or os.getenv("SMTP_USER")
+    email_pass = os.getenv("IMAP_PASSWORD") or os.getenv("SMTP_PASSWORD")
+    
+    if not email_user or not email_pass:
+        print("SMTP credentials not configured. Skipping notification email.")
+        return
+        
+    try:
+        msg = EmailMessage()
+        msg["From"] = formataddr(("LostLinks Portal", email_user))
+        msg["To"] = receiver_email
+        msg["Subject"] = subject
+        msg["MIME-Version"] = "1.0"
+        
+        button_html = ""
+        if link_url:
+            button_html = f"""
+            <div style="margin-top: 24px; text-align: center;">
+                <a href="{link_url}" style="background-color: #4f46e5; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View in Portal</a>
+            </div>
+            """
+            
+        html_content = f"""\
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f8fafc; }}
+                .wrapper {{ padding: 24px 12px; background-color: #f8fafc; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }}
+                .header {{ background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 24px; text-align: center; color: #ffffff; }}
+                .header h2 {{ margin: 0; font-size: 22px; font-weight: 700; }}
+                .content {{ padding: 32px 24px; }}
+                .intro {{ font-size: 16px; font-weight: 600; color: #1e293b; margin-top: 0; }}
+                .message-box {{ background-color: #f1f5f9; padding: 20px; border-left: 4px solid #6366f1; border-radius: 8px; font-style: italic; color: #475569; margin: 24px 0; font-size: 15px; white-space: pre-wrap; }}
+                .footer {{ background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }}
+            </style>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="container">
+                    <div class="header">
+                        <h2>LostLinks Notification</h2>
+                    </div>
+                    <div class="content">
+                        <p class="intro">{heading}</p>
+                        <div class="message-box">{text_body}</div>
+                        {button_html}
+                    </div>
+                    <div class="footer">
+                        This is an automated notification from LostLinks Portal. Please do not reply directly to this email.
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        msg.set_content(text_body)
+        msg.add_alternative(html_content, subtype="html")
+        
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+        server.login(email_user, email_pass)
+        server.sendmail(email_user, receiver_email, msg.as_string())
+        server.quit()
+        print(f"Notification email sent successfully to {receiver_email}")
+    except Exception as e:
+        print(f"Failed to send notification email to {receiver_email}: {e}")
+
+def send_notification_async(receiver_email, subject, heading, text_body, link_url=None):
+    import threading
+    t = threading.Thread(target=send_notification, args=(receiver_email, subject, heading, text_body, link_url))
+    t.daemon = True
+    t.start()
+
 #====>
 @app.route('/claim_item', methods=['POST'])
 def claim_item():
@@ -852,6 +964,20 @@ def claim_item():
     try:
         database.make_claim(email, item_id)
         flash("Claim has been made for item successfully.", "success")
+        
+        # Notify the reporter
+        reporter_email = item.get("reporterid")
+        if reporter_email:
+            item_title = item.get("title", "your item")
+            item_type = item.get("type", "lost")
+            claim_type = "claimed they found a matching item" if item_type == "lost" else "claimed this item belongs to them"
+            
+            subject = f"New Claim Notification: {item_title}"
+            heading = f"Your reported item '{item_title}' has a new claim!"
+            text_body = f"User {email} has {claim_type}.\n\nPlease check the discussion board to coordinate and verify their claim."
+            link_url = request.host_url + f"chat/{item_id}"
+            
+            send_notification_async(reporter_email, subject, heading, text_body, link_url)
     except Exception as e:
         flash(f"Error making claim: {str(e)}", "error")
         
@@ -888,6 +1014,15 @@ def resolve_to():
         if resolved_to:
             database.resolve_claim(email, item_id, resolved_to)
             flash(f"Item resolved and successfully handed over to {resolved_to}!", "success")
+            
+            # Notify the claimant to whom it was resolved
+            item_title = item.get("title", "your item")
+            subject = f"Listing Resolved: {item_title}"
+            heading = f"Good news! The listing for '{item_title}' has been resolved to you!"
+            text_body = f"The reporter ({email}) has marked the item as successfully resolved/handed over to you.\n\nThank you for using LostLinks!"
+            link_url = request.host_url + f"chat/{item_id}"
+            
+            send_notification_async(resolved_to, subject, heading, text_body, link_url)
         else:
             flash("Please select a user to resolve the item to.", "error")
     except Exception as e:
@@ -895,6 +1030,149 @@ def resolve_to():
         
     return redirect(url_for("chat", item_id=item_id))
 
+import smtplib
+from email.message import EmailMessage
+from email.utils import formataddr, make_msgid, formatdate
+import os
+import html
+
+email = os.getenv("IMAP_EMAIL") or os.getenv("SMTP_EMAIL") or os.getenv("SMTP_USER")
+passw = os.getenv("IMAP_PASSWORD") or os.getenv("SMTP_PASSWORD")
+
+@app.route("/send_email", methods=["POST"])
+def send_email():
+    if "user_email" not in session:
+        flash("Please log in to send email.", "error")
+        return redirect(url_for('login'))
+    sender_email = session["user_email"]
+    receiver_email = request.form.get("email-to")
+    subject = request.form.get("email-subject")
+    message = request.form.get("email-body")
+    item_id = request.form.get("item_id")
+    
+    if not receiver_email or not subject or not message:
+        flash("All email fields are required.", "error")
+        return redirect(request.referrer or url_for("dashboard"))
+        
+    # Escape user input to prevent HTML injection in emails
+    sender_email_esc = html.escape(sender_email)
+    message_esc = html.escape(message)
+    
+    try:
+        msg = EmailMessage()
+        
+        # 1. Format display name and set envelope headers
+        msg["From"] = formataddr(("LostLinks Portal", email))
+        msg["Reply-To"] = sender_email
+        msg["To"] = receiver_email
+        msg["Subject"] = subject
+        
+        # Let Gmail SMTP server generate Message-ID and Date automatically for perfect DKIM alignment
+        msg["MIME-Version"] = "1.0"
+        
+        # 3. Retrieve listing details and build HTML Card
+        item_html = ""
+        item_text = ""
+        if item_id:
+            item = database.get_item_by_id(item_id)
+            if item:
+                title = html.escape(item.get("title", "N/A"))
+                category = html.escape(item.get("category", "N/A"))
+                location = html.escape(item.get("location", "N/A"))
+                item_type = item.get("type", "lost").upper()
+                losttime = item.get("losttime", "N/A")
+                if losttime and "T" in losttime:
+                    losttime = losttime.replace("T", " ")
+                losttime = html.escape(losttime)
+                
+                type_color = "#ef4444" if item.get("type") == "lost" else "#10b981"
+                
+                # Check if item has a photo
+                photo_url = item.get("photourl")
+                photo_html = ""
+                if photo_url:
+                    photo_html = f"""
+                    <td valign="top" style="width: 120px; padding-right: 20px;">
+                        <div style="width: 120px; height: 120px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1;">
+                            <img src="{html.escape(photo_url)}" style="width: 100%; height: 100%; object-fit: cover;" alt="Item Photo">
+                        </div>
+                    </td>
+                    """
+                
+                item_html = f"""
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin: 20px 0;">
+                    <tr>
+                        {photo_html}
+                        <td valign="top" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; color: #64748b; line-height: 1.5;">
+                            <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 16px; font-weight: 700;">{title}</h4>
+                            <span style="display: inline-block; background-color: {type_color}; color: #ffffff; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px;">{item_type}</span><br>
+                            <strong>Category:</strong> {category}<br>
+                            <strong>Location:</strong> {location}<br>
+                            <strong>Time & Date:</strong> {losttime}
+                        </td>
+                    </tr>
+                </table>
+                """
+                item_text = f"\nListing Details:\n- Title: {title}\n- Category: {category}\n- Location: {location}\n- Type: {item_type}\n- Time: {losttime}\n"
+
+        # 4. Set text fallback content
+        msg.set_content(f"{message}\n\n{item_text}")
+        
+        # 5. Add formatted HTML alternative to lower SPAM score and show listing card
+        html_content = f"""\
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f8fafc; }}
+                .wrapper {{ padding: 24px 12px; background-color: #f8fafc; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }}
+                .header {{ background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 24px; text-align: center; color: #ffffff; }}
+                .header h2 {{ margin: 0; font-size: 22px; font-weight: 700; tracking-wide: 0.05em; }}
+                .content {{ padding: 32px 24px; }}
+                .intro {{ font-size: 16px; font-weight: 600; color: #1e293b; margin-top: 0; }}
+                .message-box {{ background-color: #f1f5f9; padding: 20px; border-left: 4px solid #6366f1; border-radius: 8px; font-style: italic; color: #475569; margin: 24px 0; font-size: 15px; white-space: pre-wrap; }}
+                .footer {{ background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }}
+                .accent-text {{ color: #4f46e5; font-weight: 600; }}
+            </style>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="container">
+                    <div class="header">
+                        <h2>LostLinks Portal</h2>
+                    </div>
+                    <div class="content">
+                        <p class="intro">Hello,</p>
+                        <p>You have received a new inquiry from a registered LostLinks user (<span class="accent-text">{sender_email_esc}</span>) regarding your item listing:</p>
+                        {item_html}
+                        <p><strong>Inquiry Message:</strong></p>
+                        <div class="message-box">{message_esc}</div>
+                        <p>You can contact the sender directly by replying to this email at <strong class="accent-text">{sender_email_esc}</strong>.</p>
+                    </div>
+                    <div class="footer">
+                        This is an automated notification from the LostLinks application. Please keep this email chain for references.
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        msg.add_alternative(html_content, subtype="html")
+
+        # Connect to Gmail SMTP server on Port 465 (SSL)
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+        server.login(email, passw)
+        server.sendmail(email, receiver_email, msg.as_string())
+        server.quit()
+
+        flash(f"Email sent successfully to {receiver_email}!", "success")
+    except Exception as e:
+        print(f"Error sending SMTP email: {e}")
+        flash(f"Email Error: {e}", "error")
+        
+    return redirect(request.referrer or url_for("dashboard"))
 
 if __name__ == '__main__':
     database.init_db()

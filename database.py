@@ -7,7 +7,7 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-# Initialize fastembed locally (uses ONNX Runtime CPU, zero PyTorch/CUDA dependencies, extremely fast and lightweight)
+os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
 embedding_model_local = TextEmbedding()
 
 class ONNXEmbeddingModel:
@@ -18,7 +18,6 @@ class ONNXEmbeddingModel:
         except Exception as e:
             raise Exception(f"Error running ONNX model locally: {str(e)}")
 
-# Compatible wrapper exposed for Assistant.py
 embedding_model = ONNXEmbeddingModel()
 
 def get_embeddings(item):
@@ -229,12 +228,14 @@ def make_claim(email, item_id):
     
     if email not in current_claims:
         current_claims.append(email)
-        
-    update_response = supabase.table("Item").update({"claimsmade": current_claims}).eq("id", item_id).execute()
+    
+    updated_time = datetime.now().strftime("%b-%d-%Y %H:%M:%S")
+    update_response = supabase.table("Item").update({"claimsmade": current_claims, "updatedat": updated_time}).eq("id", item_id).execute()
     print(f"Successfully added claim for {email} to item {item_id}")
     return update_response.data
 
 def resolve_claim(email, item_id, resolved_to_id):
-    response = supabase.table("Item").update({"resolvedto": resolved_to_id, "status": "resolved"}).eq("id", item_id).eq("reporterid", email).execute()
+    updated_time = datetime.now().strftime("%b-%d-%Y %H:%M:%S")
+    response = supabase.table("Item").update({"resolvedto": resolved_to_id, "status": "resolved", "updatedat": updated_time}).eq("id", item_id).eq("reporterid", email).execute()
     print(f"Successfully resolved claim for {email} to item {item_id}")
     return response.data

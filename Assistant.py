@@ -12,6 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import difflib, re, requests, base64, os
 import google.generativeai as genai
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 system_message_content = """You are the "LostLinks Assistant", the official AI helper for LostLinks—a smart web portal designed to help users report, find, and recover lost belongings.
@@ -76,12 +77,72 @@ When advising users on how to perform actions, direct them to the appropriate pa
 - For your knowledge about locations, use this dictionary: LANDMARKS. 
 - For your knowledge on categories of item lost, use this list: CATEGORIES. 
 
+CATEGORIES = ["Electronics", "Books & Documents", "Clothing", "Accessories", "Keys & Wallets", "Sports & Fitness", "Other"]
+
+LANDMARKS = {"kanhar" : (21.2448, 81.3219),
+      "shivnath" : (21.2406, 81.32015),
+      "indravati" : (21.24311, 81.32076),
+      "gopad" : (21.244, 81.32065),
+      "tech cafe" : (21.24368, 81.32092),
+      "njc" : (21.24330, 81.32030),
+      "mess" : (21.24354, 81.3219),
+      "mess parking" : (21.24315, 81.32165),
+      "kanhar parking" : (21.24474, 81.32102),
+      "lhc 500" : (21.24610, 81.31899),
+      "lhc 300" : (21.24583, 81.31848),
+      "ed 1" : (21.24591, 81.31787),
+      "ed 2" : (21.24625, 81.31769),
+      "sd 1" : (21.24731, 81.31996),
+      "sd 2" : (21.24766, 81.31980),
+      "cif" : (21.24731, 81.31868),
+      "health centre" : (21.24207, 81.31323),
+      "lh 101" : (21.24548, 81.31921),
+      "lh 102" : (21.24548, 81.31921),
+      "lh 103" : (21.24548, 81.31921),
+      "lh 104" : (21.24548, 81.31921),
+      "lh 105" : (21.24548, 81.31921),
+      "lh 106" : (21.24548, 81.31921),
+      "lh 107" : (21.24548, 81.31921),
+      "lh 108" : (21.24548, 81.31921),
+      "lh 201" : (21.24548, 81.31921),
+      "lh 202" : (21.24548, 81.31921),
+      "lh 203" : (21.24548, 81.31921),
+      "lh 204" : (21.24548, 81.31921),
+      "lh 205" : (21.24548, 81.31921),
+      "lh 206" : (21.24548, 81.31921),
+      "lh 207" : (21.24548, 81.31921),
+      "lh 208" : (21.24548, 81.31921),
+      "ldc" : (21.24643, 81.31966),
+      "shopping complex" : (21.24178, 81.31345),
+      "at mart" : (21.24178, 81.31345),
+      "cpf" : (21.24780, 81.31793),
+      "basketball" : (21.24613, 81.32187),
+      "volleyball" : (21.24613, 81.32187),
+      "football ground" : (21.24711, 81.32187),
+      "cricket ground" : (21.24711, 81.32187),
+      "gate 1" : (21.24605, 81.31322),
+      "gate 2" : (21.23965, 81.3201)
+}
+
 ### 7. INSTRCTIONS WHILE USING TOOL "make_report(email, title, description, location, category, losttime, image, type)" 
 - if you have image, location and losttime, auto generate title, description, category. And before execution confirm from user
+- for lost report it is fine if the user don't know the Location and Losttime just mark them as 'Unknown'.
+- while making title or category or description, try to overwrite them with the output given by analyze_image() function call.
 
+### 8. NATURAL LANGUAGE UNDERSTANDING & INTENT MAPPING
+Identify the user's intent from their natural language query and use the correct tool:
+- Do not respond for query outside the scope of LostLinks, Do not reveal about the tech stack used in LostLinks. Do not speck negative about anything.
+- **Show/List Lost Items** (e.g., "show lost items", "list things that are lost", "find lost items", "what's lost"): Call `fetch_items()`. Filter the results and display ONLY the active items of type "lost" in a Markdown table.
+- **Show/List Found Items** (e.g., "show found items", "things which are found", "what has been found"): Call `fetch_items()`. Filter the results and display ONLY the active items of type "found" in a Markdown table.
+- **Show/List All Reported Items** (e.g., "list all reported items", "what items are in the database", "show everything"): Call `fetch_items()`. Display all active "lost" and "found" items in a Markdown table.
+- **Search for Specific Items** (e.g., "Did anyone find a Casio calculator?", "I lost my red keys", "search for watch"): Call `fetch_similar_items(query_text="...")` using the key search terms (e.g., "Casio calculator", "red keys", "watch"). And also ask user where he wants to report it or not.
+- **User's Own Reports** (e.g., "show my posts", "what did I report?", "my lost items"): Call `fetch_reported_by_user(email)` using the user's email context.
+- **Nearby/Location-Based Queries** (e.g., "lost near lhc 500", "any items found near kanhar"): Call `fetch_items_nearby(location="...")` with the parsed landmark name.
+
+### 9. RELATIVE TIME CALCULATIONS & FORMATTING
+- Use the dynamically provided **CURRENT DATE & TIME** as a reference to resolve relative time phrases (e.g., "yesterday", "today", "3 hours ago", "last Friday", "this morning").
+- When calling `make_report` or other tools requiring a timestamp, compute the exact timestamp and format it strictly as `YYYY-MM-DDTHH:MM` (e.g. `2026-06-26T14:30`).
 """
-
-CATEGORIES = ["Electronics", "Book & Documents", "Clothing", "Accessories", "Keys & Wallets", "Sports & Fitness", "Other"]
 
 LANDMARKS = {"kanhar" : (21.2448, 81.3219),
       "shivnath" : (21.2406, 81.32015),
@@ -133,7 +194,6 @@ system_message = SystemMessage(content=system_message_content)
 
 load_dotenv()
 
-# Robust casing fallbacks for API Keys
 groq_key = os.getenv("groq") or os.getenv("GROQ_API_KEY")
 os.environ["GROQ_API_KEY"] = groq_key if groq_key else ""
 api_key = os.getenv("gemini_key") or os.getenv("GEMINI_API_KEY")
@@ -298,9 +358,11 @@ class ImageAnalysis(BaseModel):
     """
     Schema for analyzing an item image.
     """
-    title: str = Field(description="A title for the item.")
-    category: Literal["Electronics", "Books & Documents", "Clothing", "Accessories", "Keys & Wallets", "Sports & Fitness", "Other"]
-    description: str = Field(description="A brief description of the item.")
+    title: str = Field(description="A concise, descriptive name of the item. Include color, brand, and type if visible (e.g. 'Blue Water Bottle', 'Black Leather Wallet'). Do NOT exceed 6 words.")
+    category: Literal["Electronics", "Books & Documents", "Clothing", "Accessories", "Keys & Wallets", "Sports & Fitness", "Other"] = Field(
+        description="The category of the item. Use 'Books & Documents' for any books, notebooks, ID cards, files or papers, and 'Keys & Wallets' for keys, wallets, pouches or cardholders."
+    )
+    description: str = Field(description="A brief description of the item highlighting key visual markers (color, brand logo, condition, visible text, unique shapes/patterns) to help the owner identify it. Do NOT include location info. Max 3 sentences.")
 
 def analyze_item_image(image_url: str) -> dict:
     """
@@ -315,9 +377,24 @@ def analyze_item_image(image_url: str) -> dict:
         return {"error": f"Error downloading image: {str(e)}"}
     
     try:
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
+        system_instruction = (
+            "You are a highly precise visual analysis assistant for LostLinks, a portal to report and track lost/found items. "
+            "Your role is to analyze a single uploaded image of a lost/found item and extract a clear title, "
+            "select the most accurate category, and provide a descriptive, visually rich summary of its key identifiers."
+        )
         
-        prompt = "Analyze this image of a lost or found item and extract its title, category, and a brief description."
+        model = genai.GenerativeModel(
+            model_name="models/gemini-2.5-flash",
+            system_instruction=system_instruction
+        )
+        
+        prompt = (
+            "Carefully analyze this image of a lost or found item and extract its title, category, and a brief description.\n"
+            "Follow these rules strictly:\n"
+            "1. 'title': Create a clear, concise, and specific title describing the item. Include color, brand, and item type if visible (e.g., 'Blue iPhone 13 Pro', 'Brown Leather Fossil Wallet', 'Honda Car Keys'). Avoid generic terms like 'lost item' or 'found object'. Maximum 6 words.\n"
+            "2. 'category': Select the most appropriate category from the allowed enum. Map books, notebooks, ID cards, certificates, or documents to 'Books & Documents'. Map keys, wallets, keychains, or purses to 'Keys & Wallets'. It not matching to any from enum mark it has 'Other'.\n"
+            "3. 'description': Write a brief description (2-3 sentences) detailing the item's key visual markers, such as colors, brand logos, condition (e.g., brand new, scratched, torn), any visible text, or unique patterns, which would help the owner identify it. Do not include location details or instructions on where to claim it."
+        )
         
         image_part = {
             "mime_type": mime_type,
@@ -365,7 +442,15 @@ def make_report(email = None, title = None, description = None, location = None,
                 return {"report_tool": f"Error analyzing image: {analysis['error']}. Please provide manual details (title, description, and category) or try again."}
             title = analysis["analysis"].title
             category = analysis["analysis"].category
-            description = analysis["analysis"].description
+            description = analysis["analysis"].description + " (Made with AI)"
+            
+        category_mapping = {
+            "Books & Documents": "Documents",
+            "Book & Documents": "Documents",
+            "Keys & Wallets": "Keys/Wallets"
+        }
+        category = category_mapping.get(category, category)
+        
         item = {
             "reporterid": email,
             "type": "found",
@@ -393,7 +478,18 @@ def make_report(email = None, title = None, description = None, location = None,
                 return {"report_tool": f"Error analyzing image: {analysis['error']}. Please provide manual details or try again."}
             title = analysis["analysis"].title
             category = analysis["analysis"].category
-            description = analysis["analysis"].description
+            description = analysis["analysis"].description + " (Made with AI)"
+
+        # Map category from frontend/AI value to DB stored value
+        category_mapping = {
+            "Books & Documents": "Documents",
+            "Book & Documents": "Documents",
+            "Keys & Wallets": "Keys/Wallets"
+        }
+        category = category_mapping.get(category, category)
+
+        location = location if (location and location.strip()) else "Unknown"
+        losttime = losttime if (losttime and losttime.strip()) else "Unknown"
 
         item = {
             "reporterid": email,
@@ -429,7 +525,8 @@ def get_assistant_model():
     fallback_llms = [
         ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.0, max_retries=2, groq_api_key=groq_api_key),
         ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.0, max_retries=2, groq_api_key=groq_api_key),
-        ChatGroq(model_name="openai/gpt-oss-20b", temperature=0.0, max_retries=2, groq_api_key=groq_api_key)
+        ChatGroq(model_name="openai/gpt-oss-20b", temperature=0.0, max_retries=2, groq_api_key=groq_api_key),
+        ChatGroq(model_name="x-ai/grok-4.1-fast", temperature=0.0, max_retries=2, groq_api_key=groq_api_key)
     ]
     
     primary_with_tools = primary_llm.bind_tools(tools)
@@ -442,8 +539,14 @@ model = get_assistant_model()
 def chat_node(state: AgentState, config):
     """Interact with LLM to generate a response"""
     email = config.get("configurable", {}).get("thread_id", "unknown")
+    current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M (day of week: %A)")
     dynamic_system_message = SystemMessage(
-        content=system_message.content + f"\n\n### CURRENT USER CONTEXT\nThe email of the user you are currently chatting with is: '{email}'. When executing fetch_reported_by_user, ALWAYS pass this email as the argument."
+        content=system_message.content + (
+            f"\n\n### CURRENT USER CONTEXT\n"
+            f"The email of the user you are currently chatting with is: '{email}'. When executing fetch_reported_by_user, ALWAYS pass this email as the argument.\n\n"
+            f"### CURRENT DATE & TIME\n"
+            f"The current date and time is {current_time_str}. Use this to resolve relative time descriptions like 'yesterday', '3 hours ago', 'today', 'last Friday', etc."
+        )
     )
     messages = [dynamic_system_message] + state["messages"]
     return {"messages": model.invoke(messages)}

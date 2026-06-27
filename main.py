@@ -1,3 +1,4 @@
+import email
 import database
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from pydantic import ValidationError
@@ -7,6 +8,7 @@ import re
 from cam import upload_photo
 from Assistant import app as assistant_app
 from langchain_core.messages import HumanMessage
+import mailer
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = login_data.super_secret
@@ -546,6 +548,11 @@ def resolve_item(item_id):
         return redirect(url_for('login'))
     
     resolved_to = request.form.get("resolved_to")
+    item = database.get_item_by_id(item_id)
+    if not item:
+        flash("Item not found.", "error")
+        return redirect(request.referrer or url_for('dashboard'))
+        
     if not resolved_to:
         flash("Please select a claimant to resolve the item to.", "error")
         return redirect(request.referrer or url_for('dashboard'))
@@ -553,6 +560,13 @@ def resolve_item(item_id):
     try:
         database.resolve_claim(session['user_email'], item_id, resolved_to)
         flash(f"Item resolved and successfully handed over to {resolved_to}!", "success")
+        item_title = item.get("title", "your item")
+        subject = f"Listing Resolved: {item_title}"
+        heading = f"Good news! The listing for '{item_title}' has been resolved to you!"
+        text_body = f"The reporter ({session['user_email']}) has marked the item as successfully resolved/handed over to you.\n\nThank you for using LostLinks!"
+        link_url = request.host_url + f"chat/{item_id}"
+            
+        mailer.send_notification_async(resolved_to, subject, heading, text_body, link_url)
     except Exception as e:
         flash(f"Error resolving report: {str(e)}", "error")
         
@@ -563,6 +577,16 @@ def delete_item(item_id):
     if 'user_email' not in session:
         flash("Please log in to delete items.", "error")
         return redirect(url_for('login'))
+        
+    item = database.get_item_by_id(item_id)
+    if not item:
+        flash("Item not found.", "error")
+        return redirect(request.referrer or url_for('dashboard'))
+        
+    if item.get('reporterid') != session['user_email']:
+        flash("You do not have permission to delete this item.", "error")
+        return redirect(request.referrer or url_for('dashboard'))
+
     try:
         database.delete_entry(item_id, session['user_email'])
         flash("Item deleted successfully!", "success")
@@ -656,19 +680,50 @@ def send_chat():
     message = request.form.get('message')
 
     item = database.get_item_by_id(item_id)
-    if item["status"] == "resolved":
+    if not item:
+        flash("Item not found.", "error")
+        return redirect(url_for('dashboard'))
+        
+    if item.get("status") == "resolved":
         flash("This item has been resolved. You cannot chat anymore.", "error")
         return redirect(url_for('chat', item_id=item_id))
 
     queryowner = database.get_reporter_id(item_id)
+    sender = session['user_email']
     
     if item_id and message and message.strip():
         database.save_chat({
             "itemid": item_id,
-            "sender": session['user_email'],
+            "sender": sender,
             "receiver": queryowner if queryowner else "public",
             "message": message.strip()
         })
+        
+        item_title = item.get("title", "your item")
+        subject = f"New Discussion Message: {item_title}"
+        heading = f"New message in discussion for '{item_title}'"
+        text_body = f"{sender} wrote:\n\"{message.strip()}\""
+        link_url = request.host_url + f"chat/{item_id}"
+        
+        if sender != queryowner:
+            if queryowner:
+                mailer.send_notification_async(queryowner, subject, heading, text_body, link_url)
+        else:
+            try:
+                chat_history = database.load_chat(item_id)
+                claimants = item.get("claimsmade") or []
+                if isinstance(claimants, str):
+                    claimants = [claimants]
+                    
+                recipients = set(claimants)
+                for msg in chat_history:
+                    if msg.get("sender") and msg.get("sender") != queryowner:
+                        recipients.add(msg.get("sender"))
+                        
+                for recipient in recipients:
+                    mailer.send_notification_async(recipient, subject, heading, text_body, link_url)
+            except Exception as ex:
+                print(f"Error resolving chat notification recipients: {ex}")
         
     return redirect(url_for('chat', item_id=item_id))
 
@@ -688,6 +743,7 @@ def format_assistant_message(text):
         table_html = '<div class="overflow-x-auto my-3 border border-slate-200 rounded-xl bg-white shadow-sm"><table class="min-w-full divide-y divide-slate-200 text-xs">'
         has_header = False
         
+        headers = []
         for line in lines:
             if re.match(r'^[|\s:-]+$', line.replace('|', '').strip()):
                 continue
@@ -699,11 +755,12 @@ def format_assistant_message(text):
                 table_html += '<thead class="bg-slate-50"><tr>'
                 for cell in cells:
                     table_html += f'<th class="px-3 py-2 text-left font-semibold text-slate-700 uppercase tracking-wider">{cell}</th>'
+                    headers.append(cell.lower().replace(" ", "").replace("_", ""))
                 table_html += '</tr></thead><tbody class="divide-y divide-slate-100 bg-white">'
                 has_header = True
             else:
                 table_html += '<tr class="hover:bg-slate-50/50 transition-colors">'
-                for cell in cells:
+                for idx, cell in enumerate(cells):
                     cell_content = cell
                     
                     # 1. Parse datetime values (e.g. 2026-06-12T22:00)
@@ -719,13 +776,17 @@ def format_assistant_message(text):
                         except Exception:
                             pass
                     
-                    # 2. Check for statuses
-                    elif 'Lost' in cell:
-                        cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-100">🔴 Lost</span>'
-                    elif 'Found' in cell:
-                        cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">🟢 Found</span>'
-                    elif 'Resolved' in cell:
-                        cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">✅ Resolved</span>'
+                    else:
+                        # 2. Check for statuses only in status/type columns OR if the cell matches exactly
+                        is_status_col = idx < len(headers) and any(x in headers[idx] for x in ['status', 'type', 'stat'])
+                        cell_lower = cell.strip().lower()
+                        if is_status_col or cell_lower in ['lost', 'found', 'resolved']:
+                            if 'lost' in cell_lower:
+                                cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-100">🔴 Lost</span>'
+                            elif 'found' in cell_lower:
+                                cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">🟢 Found</span>'
+                            elif 'resolved' in cell_lower:
+                                cell_content = f'<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">✅ Resolved</span>'
                     
                     table_html += f'<td class="px-3 py-2 text-slate-600 font-medium whitespace-nowrap">{cell_content}</td>'
                 table_html += '</tr>'
@@ -854,7 +915,7 @@ def claim_item():
     item = database.get_item_by_id(item_id)
     if not item:
         flash("Item not found.", "error")
-        return redirect(url_for("chat", item_id=item_id))
+        return redirect(url_for("dashboard"))
     
     if item.get("status") == "resolved":
         flash("Item already resolved.", "error")
@@ -867,49 +928,49 @@ def claim_item():
     try:
         database.make_claim(email, item_id)
         flash("Claim has been made for item successfully.", "success")
+        
+        reporter_email = item.get("reporterid")
+        if reporter_email:
+            item_title = item.get("title", "your item")
+            item_type = item.get("type", "lost")
+            claim_type = "claimed they found a matching item" if item_type == "lost" else "claimed this item belongs to them"
+            
+            subject = f"New Claim Notification: {item_title}"
+            heading = f"Your reported item '{item_title}' has a new claim!"
+            text_body = f"User {email} has {claim_type}.\n\nPlease check the discussion board to coordinate and verify their claim."
+            link_url = request.host_url + f"chat/{item_id}"
+            
+            mailer.send_notification_async(reporter_email, subject, heading, text_body, link_url)
     except Exception as e:
         flash(f"Error making claim: {str(e)}", "error")
         
     return redirect(url_for("chat", item_id=item_id))
 
-@app.route('/resolve_to', methods=["POST"])
-def resolve_to():
-    if 'user_email' not in session:
-        flash("Please log in to resolve claims.", "error")
+
+
+@app.route("/send_email", methods=["POST"])
+def send_email():
+    if "user_email" not in session:
+        flash("Please log in to send email.", "error")
         return redirect(url_for('login'))
-        
-    email = session["user_email"]
+    sender_email = session["user_email"]
+    receiver_email = request.form.get("email-to")
+    subject = request.form.get("email-subject")
+    message = request.form.get("email-body")
     item_id = request.form.get("item_id")
-    resolved_to = request.form.get("resolved_to")
     
-    if not item_id:
-        flash("Item ID is missing.", "error")
-        return redirect(url_for("dashboard"))
-    
-    item = database.get_item_by_id(item_id)
-    if not item:
-        flash("Item not found.", "error")
-        return redirect(url_for("chat", item_id=item_id))
-
-    if item.get("status") == "resolved":
-        flash("Item already resolved.", "error")
-        return redirect(url_for("chat", item_id=item_id))
-
-    if item.get("reporterid") != email:
-        flash("You are not the reporter of this item.", "error")
-        return redirect(url_for("chat", item_id=item_id))
-
-    try:
-        if resolved_to:
-            database.resolve_claim(email, item_id, resolved_to)
-            flash(f"Item resolved and successfully handed over to {resolved_to}!", "success")
-        else:
-            flash("Please select a user to resolve the item to.", "error")
-    except Exception as e:
-        flash(f"Error resolving item: {str(e)}", "error")
+    if not receiver_email or not subject or not message:
+        flash("All email fields are required.", "error")
+        return redirect(request.referrer or url_for("dashboard"))
         
-    return redirect(url_for("chat", item_id=item_id))
-
+    try:
+        mailer.send_inquiry(sender_email, receiver_email, subject, message, item_id)
+        flash(f"Email sent successfully to {receiver_email}!", "success")
+    except Exception as e:
+        print(f"Error sending SMTP email: {e}")
+        flash(f"Email Error: {e}", "error")
+        
+    return redirect(request.referrer or url_for("dashboard"))
 
 if __name__ == '__main__':
     database.init_db()

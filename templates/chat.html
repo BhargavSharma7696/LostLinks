@@ -38,7 +38,12 @@
         
         <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
           <span class="font-bold text-slate-500">👤 Reporter</span>
-          <span class="font-semibold text-indigo-600 break-all text-right max-w-[60%]">{{ item.reporterid }}</span>
+          <div class="flex flex-col items-end max-w-[60%]">
+            <span class="font-semibold text-indigo-600 break-all text-right">{{ item.reporterid }}</span>
+            {% if item.reporterid != email %}
+              <button onclick="openEmailModal()" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-bold mt-1 cursor-pointer transition focus:outline-none">📧 Send Email</button>
+            {% endif %}
+          </div>
         </div>
         
         <div class="flex justify-between items-start text-sm pb-2">
@@ -76,9 +81,14 @@
           {% if item.reporterid == email %}
             <!-- For Owner/Reporter -->
             <div class="flex flex-col gap-3">
-              <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review claims or mark this item as resolved once returned.</p>
+              {% if item.type == 'found' %} 
+                <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review claims or mark this item as returned once claimed and resolved.</p>
+              {% else %}
+                <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review found or mark this item as resolved once you get it back.</p>
+              {% endif %}
               
               {% if item.claimsmade %}
+                {% if item.type == 'found' %}
                 <div class="flex flex-col gap-3">
                   <span class="text-xs font-bold text-slate-600">Claims Received:</span>
                   <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
@@ -93,6 +103,22 @@
                     </button>
                   </form>
                 </div>
+                {% else %}
+                <div class="flex flex-col gap-3">
+                  <span class="text-xs font-bold text-slate-600">Found such Item:</span>
+                  <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
+                    <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                      <option value="" disabled selected>Select Person to Resolve</option>
+                      {% for claimant in item.claimsmade %}
+                        <option value="{{ claimant }}">{{ claimant }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-md shadow-emerald-900/30 hover:shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1.5">
+                      Confirm Resolve
+                    </button>
+                  </form>
+                </div>
+                {% endif %}
               {% else %}
                 <div class="text-xs font-semibold text-slate-400 italic bg-slate-50 rounded-xl p-3 border border-dashed border-slate-200 text-center">
                   No claims submitted yet.
@@ -102,20 +128,39 @@
           {% else %}
             <!-- For Other Users -->
             {% if email in item.claimsmade %}
-              <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
-                <div class="text-base mb-1">✓</div>
-                Your claim has been submitted to the reporter. They will contact you shortly if it matches.
-              </div>
+              {% if item.type == 'found' %}
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
+                  <div class="text-base mb-1">✓</div>
+                  Your claim has been submitted to the reporter. They will contact you shortly if it matches.
+                </div>
+              {% else %}
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
+                  <div class="text-base mb-1">✓</div>
+                  Your found status has been submitted to the reporter. They will contact you shortly.
+                </div>
+              {% endif %}
             {% else %}
-              <div class="flex flex-col gap-3">
-                <p class="text-xs text-slate-500 font-medium">If this item belongs to you, or you have recovered it, submit a claim to notify the reporter.</p>
-                <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
-                  <input type="hidden" name="item_id" value="{{ item.id }}">
-                  <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
-                    Claim Item
-                  </button>
-                </form>
-              </div>
+              {% if item.type == 'found' %}
+                <div class="flex flex-col gap-3">
+                  <p class="text-xs text-slate-500 font-medium">If this item belongs to you, or you have recovered it, submit a claim to notify the reporter.</p>
+                  <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
+                      Claim Item
+                    </button>
+                  </form>
+                </div>
+              {% else %}
+                <div class="flex flex-col gap-3">
+                  <p class="text-xs text-slate-500 font-medium">If you got this item, respond here to notify the reporter.</p>
+                  <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
+                      Found similar Item
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
             {% endif %}
           {% endif %}
         {% endif %}
@@ -224,6 +269,44 @@
   </div>
 </div>
 
+<!-- Email Modal -->
+<div
+  id="email-modal"
+  class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+  style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
+  onclick="closeEmailModal()"
+>
+  <div class="bg-white rounded-[24px] shadow-2xl border border-slate-100 p-6 md:p-8 w-full max-w-lg relative animate-fade-in-up" onclick="event.stopPropagation()">
+    <button onclick="closeEmailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-650 text-2xl font-bold cursor-pointer transition">&times;</button>
+    
+    <h3 class="text-2xl font-bold text-slate-800 mb-2">Email Reporter</h3>
+    <p class="text-xs text-slate-500 font-medium mb-6">Send an email directly to the person who reported this item.</p>
+    
+    <form action="{{ url_for('send_email') }}" method="POST" id="email-sender-form" class="space-y-4">
+      <input type="hidden" name="item_id" value="{{ item.id }}">
+      
+      <div>
+        <label for="email-to" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">To:</label>
+        <input type="text" name="email-to" id="email-to" class="w-full bg-slate-50 border border-slate-200 text-slate-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none" value="{{ item.reporterid }}" readonly>
+      </div>
+
+      <div>
+        <label for="email-subject" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Subject:</label>
+        <input type="text" name="email-subject" id="email-subject" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition" value="New inquiry regarding your LostLinks Portal listing: {{ item.title }}" required>
+      </div>
+
+      <div>
+        <label for="email-body" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Message:</label>
+        <textarea name="email-body" id="email-body" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition" rows="5" placeholder="Hi, I wanted to discuss the details regarding the reported item..." required></textarea>
+      </div>
+
+      <button type="submit" id="email-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl px-4 py-3.5 mt-4 transition shadow-md shadow-indigo-250 cursor-pointer flex items-center justify-center gap-2">
+        Send Email
+      </button>
+    </form>
+  </div>
+</div>
+
 <script>
 function openImageModal(src) {
     document.getElementById('modal-image').src = src;
@@ -233,6 +316,22 @@ function openImageModal(src) {
 function closeImageModal() {
     document.getElementById('image-modal').classList.add('hidden');
 }
+
+function openEmailModal() {
+    document.getElementById('email-modal').classList.remove('hidden');
+}
+
+function closeEmailModal() {
+    document.getElementById('email-modal').classList.add('hidden');
+}
+
+document.getElementById('email-sender-form').addEventListener('submit', function() {
+    const btn = document.getElementById('email-submit-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Sending...';
+    }
+});
 </script>
 
 {% endblock %}

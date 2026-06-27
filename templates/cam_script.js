@@ -50,32 +50,48 @@
 
   // Camera Capture Logic
   async function startCamera() {
-    const video = document.getElementById('camera-feed');
-    const startBtn = document.getElementById('start-camera-btn');
-    const captureBtn = document.getElementById('capture-photo-btn');
-    const stopBtn = document.getElementById('stop-camera-btn');
-    const previewWrapper = document.getElementById('capture-preview-wrapper');
 
-    previewWrapper.style.display = 'none';
-    document.getElementById('captured-preview-img').src = '';
-    document.getElementById('photo-base64').value = '';
-    document.getElementById('retake-photo-btn').style.display = 'none';
+  const video = document.getElementById('camera-feed');
+  const startBtn = document.getElementById('start-camera-btn');
+  const captureBtn = document.getElementById('capture-photo-btn');
+  const stopBtn = document.getElementById('stop-camera-btn');
+  const previewWrapper = document.getElementById('capture-preview-wrapper');
 
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, 
-        audio: false 
-      });
-      video.srcObject = stream;
-      video.style.display = 'block';
-      startBtn.style.display = 'none';
-      captureBtn.style.display = 'inline-block';
-      stopBtn.style.display = 'inline-block';
-    } catch (err) {
-      console.error("Camera access error:", err);
-      alert("Could not access camera. Please check camera permissions or use the Upload option.");
-    }
+  // Reset UI (safe for BOTH modes)
+  previewWrapper.style.display = 'none';
+  document.getElementById('captured-preview-img').src = '';
+  document.getElementById('photo-base64').value = '';
+  document.getElementById('retake-photo-btn').style.display = 'none';
+
+  // 📱 ANDROID MODE
+  if (window.AndroidCamera && AndroidCamera.openCamera) {
+    AndroidCamera.openCamera();
+    return; // 🔥 IMPORTANT: STOP HERE
   }
+
+  // 💻 WEB MODE ONLY (UI updates belong here)
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    video.style.display = 'block';
+
+    startBtn.style.display = 'none';
+    captureBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'inline-block';
+
+  } catch (err) {
+    console.error("Camera access error:", err);
+    alert("Could not access camera. Please check permissions or use Upload option.");
+  }
+}
 
   function stopCamera() {
     const video = document.getElementById('camera-feed');

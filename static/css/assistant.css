@@ -395,6 +395,7 @@
 
 .chat-input-field-new {
   flex: 1;
+  min-width: 0 !important;
   background: transparent !important;
   border: none !important;
   color: #f1f5f9 !important;
@@ -690,6 +691,21 @@
     height: auto !important;
     max-height: none !important;
     overflow-y: auto !important;
+  }
+
+  /* Mobile responsive fixes for hero input and button */
+  .assistant-page-container {
+    padding: 24px 16px !important;
+  }
+
+  #hero-chat-send-btn {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+
+  .chat-input-wrapper {
+    padding: 4px 4px 4px 12px !important;
   }
 }
 

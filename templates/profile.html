@@ -3,56 +3,146 @@
 {% block title %}Profile - 🔗 LostLinks{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-[70vh]">
-  <div class="animate-fade-in-up bg-white rounded-[24px] shadow-xl p-8 md:p-12 w-full max-w-lg border border-slate-100">
-
-    <div class="flex flex-col items-center mb-8">
-      <div
-        class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-[24px] flex items-center justify-center text-4xl font-bold shadow-lg mb-4">
-        {{ user.displayName[0].upper() if user.displayName else 'U' }}
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 lg:px-8 mt-6">
+  <!-- Left Column: Profile Card -->
+  <div class="lg:col-span-1">
+    <div class="animate-fade-in-up bg-white rounded-[24px] shadow-xl p-8 border border-slate-100 lg:sticky lg:top-24">
+      <div class="flex flex-col items-center mb-8">
+        <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-[24px] flex items-center justify-center text-4xl font-bold shadow-lg mb-4">
+          {{ user.displayName[0].upper() if user.displayName else 'U' }}
+        </div>
+        <h1 class="text-3xl font-bold text-slate-800" id="profile-title">Profile</h1>
+        <p class="text-slate-500 font-medium text-center">Your account information</p>
       </div>
-      <h1 class="text-3xl font-bold text-slate-800" id="profile-title">Profile</h1>
-      <p class="text-slate-500 font-medium">Your account information</p>
+
+      <div class="bg-slate-50 rounded-[20px] border border-slate-100 p-6 space-y-4 mb-8">
+        <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+          <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Name : </span>
+          <span class="font-semibold text-slate-800 text-right break-words" id="profile-displayname">{{ user.displayName }}</span>
+        </div>
+
+        <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+          <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Email : </span>
+          <span class="font-semibold text-slate-800 text-right break-all" id="profile-email">{{ user.email }}</span>
+        </div>
+
+        <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
+          <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Member Since : </span>
+          <span class="font-semibold text-slate-800 text-right" id="profile-memberssince">{{ user.membersSince.split("T")[0] if
+            user.membersSince else "N/A" }}</span>
+        </div>
+
+        {% if user.contactNumber %}
+        <div class="flex justify-between items-start pb-1 gap-4">
+          <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Contact Number : </span>
+          <span class="font-semibold text-slate-800 text-right break-words" id="profile-contactnumber">{{ user.contactNumber }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="flex flex-col gap-4 w-full mt-2">
+        <a href="{{ url_for('update_profile') }}"
+          class="flex-1 flex items-center justify-center text-center bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition"
+          id="update-profile-btn">
+          Update Profile
+        </a>
+        <a href="{{ url_for('dashboard') }}"
+          class="flex-1 flex items-center justify-center text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition"
+          id="dashboard-logout-btn">
+          Back to Dashboard
+        </a>
+      </div>
     </div>
+  </div>
 
-    <div class="bg-slate-50 rounded-[20px] border border-slate-100 p-6 space-y-4 mb-8">
-      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
-        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Name : </span>
-        <span class="font-semibold text-slate-800 text-right break-words" id="profile-displayname">{{ user.displayName }}</span>
+  <!-- Right Column: Listings -->
+  <div class="lg:col-span-2 mb-8">
+    <div class="animate-fade-in-up delay-200 bg-slate-900 rounded-[24px] shadow-sm p-6 md:p-8 text-white h-full min-h-[500px] flex flex-col relative overflow-hidden">
+      <div class="mb-6 z-10 relative">
+        <h2 class="text-2xl font-bold mb-1">Your Listings</h2>
+        <p class="text-slate-400 text-sm font-medium">Manage all items you have reported</p>
       </div>
 
-      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
-        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Email : </span>
-        <span class="font-semibold text-slate-800 text-right break-all" id="profile-email">{{ user.email }}</span>
+      <div class="flex-1 z-10 relative">
+        {% set all_entries = user_lost_entries + user_found_entries %}
+        {% if all_entries %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {% for entry in all_entries %}
+            <div class="bg-white rounded-2xl p-5 text-slate-800 flex flex-col h-full shadow-md">
+              <div class="flex justify-between items-start mb-3">
+                <span class="font-bold text-lg leading-tight">{{ entry.title }}</span>
+                {% if entry.type == 'lost' %}
+                  <span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">Lost - {{ entry.category }}</span>
+                {% else %}
+                  <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">Found - {{ entry.category }}</span>
+                {% endif %}
+              </div>
+              
+              <div class="text-xs text-slate-500 mb-3 space-y-1">
+                <p><b>📍 Location:</b> {{ entry.location }}</p>
+                <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
+                <p><b>Status:</b> 
+                  {% if entry.status == 'resolved' %}
+                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold ml-1">Resolved</span>
+                    {% if entry.resolvedto %}
+                      <span class="text-xs text-slate-500 block mt-1">Resolved to: <b class="text-indigo-600">{{ entry.resolvedto }}</b></span>
+                    {% endif %}
+                  {% else %}
+                    <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold ml-1">Active</span>
+                  {% endif %}
+                </p>
+              </div>
+
+              <p class="text-sm text-slate-700 mb-3 line-clamp-2 flex-grow">{{ entry.description }}</p>
+
+              {% if entry.photourl %}
+                <div class="w-full h-32 rounded-lg overflow-hidden bg-slate-100 mb-3 shrink-0">
+                  <img src="{{ entry.photourl }}" alt="{{ entry.title }}" class="w-full h-full object-cover">
+                </div>
+              {% endif %}
+              
+              {% if entry.status != 'resolved' %}
+                <div class="flex flex-col gap-2 mt-auto pt-2 border-t border-slate-100">
+                  {% if entry.claimsmade %}
+                    <form action="{{ url_for('resolve_item', item_id=entry.id) }}" method="POST" class="w-full flex flex-col gap-1" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
+                      <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                        <option value="" disabled selected>Select Claimant to Resolve</option>
+                        {% for claimant in entry.claimsmade %}
+                          <option value="{{ claimant }}">{{ claimant }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-[10px] font-bold py-2 rounded-lg transition shadow-md shadow-emerald-100 cursor-pointer">
+                        Confirm Resolve
+                      </button>
+                    </form>
+                  {% endif %}
+                  
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    <form action="{{ url_for('delete_item', item_id=entry.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the listing?');" class="w-full">
+                      <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold py-2 rounded-lg transition cursor-pointer">
+                        Delete
+                      </button>
+                    </form>
+                    <form action="{{ url_for('update_item', item_id=entry.id) }}" method="GET" class="w-full">
+                      <button type="submit" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-lg transition cursor-pointer">
+                        Update
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-slate-400 font-medium italic text-sm mt-10">
+            You haven't reported any listings yet.
+          </div>
+        {% endif %}
       </div>
 
-      <div class="flex justify-between items-start border-b border-slate-200 pb-3 gap-4">
-        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Member Since : </span>
-        <span class="font-semibold text-slate-800 text-right" id="profile-memberssince">{{ user.membersSince.split("T")[0] if
-          user.membersSince else "N/A" }}</span>
-      </div>
-
-      {% if user.contactNumber %}
-      <div class="flex justify-between items-start pb-1 gap-4">
-        <span class="text-sm font-bold text-slate-500 whitespace-nowrap">Contact Number : </span>
-        <span class="font-semibold text-slate-800 text-right break-words" id="profile-contactnumber">{{ user.contactNumber }}</span>
-      </div>
-      {% endif %}
+      <div class="absolute -right-16 -bottom-16 text-[200px] opacity-5 pointer-events-none">📝</div>
     </div>
-
-    <div class="flex flex-col sm:flex-row gap-4 w-full mt-2">
-      <a href="{{ url_for('update_profile') }}"
-        class="flex-1 flex items-center justify-center text-center bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 shadow-md shadow-indigo-200 transition"
-        id="update-profile-btn">
-        Update Profile
-      </a>
-      <a href="{{ url_for('dashboard') }}"
-        class="flex-1 flex items-center justify-center text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl px-4 py-3 transition"
-        id="dashboard-logout-btn">
-        Back to Dashboard
-      </a>
-    </div>
-
   </div>
 </div>
 {% endblock %}

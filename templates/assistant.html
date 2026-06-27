@@ -4,346 +4,381 @@
 
 {% block content %}
 {% if show_history %}
-  <!-- Active Discussion Interface (Split-Pane View) -->
-  <div class="flex items-center justify-center min-h-[80vh] py-6 animate-fade-in-up">
-    <div class="assistant-page-container active-chat-container rounded-[24px] flex flex-col md:flex-row w-full max-w-8xl h-auto md:h-[80vh] overflow-hidden relative">
-      
-      <!-- Subtle internal glow for chat dashboard -->
-      <div style="position: absolute; top: 10%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(99, 102, 241, 0) 70%); filter: blur(50px); pointer-events: none; z-index: 0;"></div>
-      
-      <!-- Left Column: Assistant Information Sidebar -->
-      <div class="w-full md:w-2/5 lg:w-1/3 sidebar-panel overflow-y-auto p-6 flex flex-col gap-6 relative z-10">
-        <a href="{{ url_for('dashboard') }}" class="sidebar-close-btn" title="Go back to Dashboard">&times;</a>
-        
-        <div class="flex items-center gap-3 shrink-0">
-          <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
-          <div>
-            <h2 class="text-xl font-bold text-white leading-tight">AI Portal Assistant</h2>
-            <span class="inline-flex items-center gap-1.5 mt-0.5">
-              <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" style="box-shadow: 0 0 8px #34d399;"></span>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active & Smart</span>
-            </span>
+<!-- Active Discussion Interface (Split-Pane View) -->
+<div class="flex items-center justify-center min-h-[80vh] py-6 animate-fade-in-up">
+  <div
+    class="assistant-page-container active-chat-container rounded-[24px] flex flex-col md:flex-row w-full max-w-8xl h-auto md:h-[80vh] overflow-hidden relative">
+
+    <!-- Subtle internal glow for chat dashboard -->
+    <div
+      style="position: absolute; top: 10%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(99, 102, 241, 0) 70%); filter: blur(50px); pointer-events: none; z-index: 0;">
+    </div>
+
+    <!-- Left Column: Assistant Information Sidebar -->
+    <div class="w-full md:w-2/5 lg:w-1/3 sidebar-panel overflow-y-auto p-6 flex flex-col gap-6 relative z-10">
+      <a href="{{ url_for('dashboard') }}" class="sidebar-close-btn" title="Go back to Dashboard">&times;</a>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
+        <div>
+          <h2 class="text-xl font-bold text-white leading-tight">AI Portal Assistant</h2>
+          <span class="inline-flex items-center gap-1.5 mt-0.5">
+            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" style="box-shadow: 0 0 8px #34d399;"></span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active & Smart</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-700/50 pt-4 flex flex-col gap-5 text-sm text-slate-300 leading-relaxed">
+        <!-- Return to Landing / New Search Button -->
+        <a href="{{ url_for('assistant_page') }}"
+          class="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3.5 font-semibold text-sm transition shadow-md decoration-none mb-2"
+          style="display: block; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+          ✨ New Search
+        </a>
+
+        <p>Welcome! I'm your interactive helper. Ask me about reported lost or found items, or get coordinate locations,
+          search metrics, and portal guidance.</p>
+
+        <div class="bg-indigo-950/30 border border-indigo-500/15 rounded-2xl p-4">
+          <h4 class="font-bold text-indigo-400 text-xs uppercase tracking-wider mb-3">System Capabilities</h4>
+          <div class="flex flex-col gap-2">
+            <div class="capability-item"><span>🔍</span> <span>Scan active lost items database</span></div>
+            <div class="capability-item"><span>🟢</span> <span>Scan active found items database</span></div>
+            <div class="capability-item"><span>📍</span> <span>Map & check belonging coordinates</span></div>
+            <div class="capability-item"><span>📂</span> <span>Read user's own reports</span></div>
           </div>
         </div>
 
-        <div class="border-t border-slate-700/50 pt-4 flex flex-col gap-5 text-sm text-slate-300 leading-relaxed">
-          <!-- Return to Landing / New Search Button -->
-          <a href="{{ url_for('assistant_page') }}" class="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3.5 font-semibold text-sm transition shadow-md decoration-none mb-2" style="display: block; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
-            ✨ New Search
-          </a>
+        <div>
+          <h4 class="font-bold text-slate-400 text-xs uppercase tracking-wider mb-2.5">Suggested Queries</h4>
+          <div class="flex flex-col gap-2.5">
+            <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
+              <input type="hidden" name="message" value="Show active lost items">
+              <button type="submit" class="suggestion-card-btn">
+                <span class="btn-text-wrapper">
+                  <span>🔍</span> <span>List all active lost items</span>
+                </span>
+              </button>
+            </form>
 
-          <p>Welcome! I'm your interactive helper. Ask me about reported lost or found items, or get coordinate locations, search metrics, and portal guidance.</p>
-          
-          <div class="bg-indigo-950/30 border border-indigo-500/15 rounded-2xl p-4">
-            <h4 class="font-bold text-indigo-400 text-xs uppercase tracking-wider mb-3">System Capabilities</h4>
-            <div class="flex flex-col gap-2">
-              <div class="capability-item"><span>🔍</span> <span>Scan active lost items database</span></div>
-              <div class="capability-item"><span>🟢</span> <span>Scan active found items database</span></div>
-              <div class="capability-item"><span>📍</span> <span>Map & check belonging coordinates</span></div>
-              <div class="capability-item"><span>📂</span> <span>Read user's own reports</span></div>
-            </div>
-          </div>
-          
-          <div>
-            <h4 class="font-bold text-slate-400 text-xs uppercase tracking-wider mb-2.5">Suggested Queries</h4>
-            <div class="flex flex-col gap-2.5">
-              <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
-                <input type="hidden" name="message" value="Show active lost items">
-                <button type="submit" class="suggestion-card-btn">
-                  <span class="btn-text-wrapper">
-                    <span>🔍</span> <span>List all active lost items</span>
-                  </span>
-                </button>
-              </form>
-              
-              <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
-                <input type="hidden" name="message" value="Show active found items">
-                <button type="submit" class="suggestion-card-btn">
-                  <span class="btn-text-wrapper">
-                    <span>🟢</span> <span>List all active found items</span>
-                  </span>
-                </button>
-              </form>
+            <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
+              <input type="hidden" name="message" value="Show active found items">
+              <button type="submit" class="suggestion-card-btn">
+                <span class="btn-text-wrapper">
+                  <span>🟢</span> <span>List all active found items</span>
+                </span>
+              </button>
+            </form>
 
-              <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
-                <input type="hidden" name="message" value="How do I report a lost wallet?">
-                <button type="submit" class="suggestion-card-btn">
-                  <span class="btn-text-wrapper">
-                    <span>📝</span> <span>How do I report a lost item?</span>
-                  </span>
-                </button>
-              </form>
-            </div>
+            <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('chat')">
+              <input type="hidden" name="message" value="How do I report a lost wallet?">
+              <button type="submit" class="suggestion-card-btn">
+                <span class="btn-text-wrapper">
+                  <span>📝</span> <span>How do I report a lost item?</span>
+                </span>
+              </button>
+            </form>
           </div>
         </div>
       </div>
-      
-      <!-- Right Column: AI Assistant Message Stream -->
-      <div class="w-full md:w-3/5 lg:w-2/3 flex flex-col chat-panel relative min-h-[60vh] md:min-h-0 z-10">
-        
-        <!-- Chat Header -->
-        <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/40 backdrop-blur-sm z-10 shrink-0 flex justify-between items-center">
-          <div>
-            <h3 class="text-lg font-bold text-white">Assistant Discussion Board</h3>
-            <p class="text-xs text-slate-400 font-medium">Ask questions directly or query coordinates of lost belongings</p>
-          </div>
-          <a href="{{ url_for('assistant_page') }}" class="chat-header-btn">
-            Clear View
-          </a>
-        </div>
-        
-        <!-- Message Stream Log -->
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-5" id="chat-messages-log">
-          {% if history %}
-            {% for msg in history %}
-              {% if msg.sender == 'user' %}
-                <!-- User Message -->
-                <div class="flex w-full justify-end items-start gap-3">
-                  <div class="chat-bubble-user">
-                    <p class="text-sm leading-relaxed whitespace-pre-wrap font-medium">{{ msg.message }}</p>
-                  </div>
-                  <div class="avatar-badge-user shrink-0 select-none">
-                    {{ email[0] | upper }}
-                  </div>
-                </div>
-              {% else %}
-                <!-- Assistant Message -->
-                <div class="flex w-full justify-start flex-col">
-                  <span class="text-[11px] font-bold text-indigo-400 ml-12 mb-1">LOSTLINKS ASSISTANT</span>
-                  <div class="flex items-start gap-3">
-                    <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
-                    <div class="chat-bubble-assistant">
-                      <div class="msg-assistant-content text-sm leading-relaxed font-medium">
-                        {{ msg.message | markdown_format | safe }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
+    </div>
 
-          <!-- Typing Loader Bubble (Initially hidden, shown via JS on submit) -->
-          <div id="typing-bubble-loader" class="w-full justify-start flex-col" style="display: none;">
-            <span class="text-[11px] font-bold text-indigo-400 ml-12 mb-1">LOSTLINKS ASSISTANT</span>
-            <div class="flex items-start gap-3">
-              <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
-              <div class="chat-bubble-assistant">
-                <div class="typing-dots">
-                  <div class="typing-dot"></div>
-                  <div class="typing-dot"></div>
-                  <div class="typing-dot"></div>
-                </div>
+    <!-- Right Column: AI Assistant Message Stream -->
+    <div class="w-full md:w-3/5 lg:w-2/3 flex flex-col chat-panel relative min-h-[60vh] md:min-h-0 z-10">
+
+      <!-- Chat Header -->
+      <div
+        class="px-6 py-4 border-b border-slate-800 bg-slate-900/40 backdrop-blur-sm z-10 shrink-0 flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-bold text-white">Assistant Discussion Board</h3>
+          <p class="text-xs text-slate-400 font-medium">Ask questions directly or query coordinates of lost belongings
+          </p>
+        </div>
+        <a href="{{ url_for('assistant_page') }}" class="chat-header-btn">
+          Clear View
+        </a>
+      </div>
+
+      <!-- Message Stream Log -->
+      <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-5" id="chat-messages-log">
+        {% if history %}
+        {% for msg in history %}
+        {% if msg.sender == 'user' %}
+        <!-- User Message -->
+        <div class="flex w-full justify-end items-start gap-3">
+          <div class="chat-bubble-user">
+            <p class="text-sm leading-relaxed whitespace-pre-wrap font-medium">{{ msg.message }}</p>
+          </div>
+          <div class="avatar-badge-user shrink-0 select-none">
+            {{ email[0] | upper }}
+          </div>
+        </div>
+        {% else %}
+        <!-- Assistant Message -->
+        <div class="flex w-full justify-start flex-col">
+          <span class="text-[11px] font-bold text-indigo-400 ml-12 mb-1">LOSTLINKS ASSISTANT</span>
+          <div class="flex items-start gap-3">
+            <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
+            <div class="chat-bubble-assistant">
+              <div class="msg-assistant-content text-sm leading-relaxed font-medium">
+                {{ msg.message | markdown_format | safe }}
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Chat Input Send Area -->
-        <div class="chat-input-area shrink-0">
-          <!-- Preview Container for Attached Photo -->
-          <div id="chat-upload-preview-container" class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 shrink-0 relative z-20 animate-fade-in-up">
-            <img id="chat-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950" alt="Attached preview">
-            <div class="flex-1 min-w-0">
-              <p id="chat-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
-              <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Ready to send</p>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <!-- Typing Loader Bubble (Initially hidden, shown via JS on submit) -->
+        <div id="typing-bubble-loader" class="w-full justify-start flex-col" style="display: none;">
+          <span class="text-[11px] font-bold text-indigo-400 ml-12 mb-1">LOSTLINKS ASSISTANT</span>
+          <div class="flex items-start gap-3">
+            <div class="avatar-badge-assistant shrink-0 select-none">🤖</div>
+            <div class="chat-bubble-assistant">
+              <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
             </div>
-            <button type="button" class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors" onclick="clearChatUpload()" title="Remove Photo">&times;</button>
           </div>
-
-          <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data" onsubmit="showLoadingState('chat')">
-            <div class="chat-input-wrapper">
-              <!-- Attachment Button -->
-              <button type="button" id="chat-attach-btn" class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2" onclick="document.getElementById('chat-photo-file').click()" title="Attach Photo">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </button>
-              <input type="file" name="photo" id="chat-photo-file" accept="image/*" class="hidden" onchange="previewChatUpload(this)">
-
-              <input 
-                type="text" 
-                name="message" 
-                id="chat-message-input" 
-                class="chat-input-field-new" 
-                placeholder="Search items, check reports, ask a question..." 
-                required
-                autocomplete="off"
-                autofocus
-              >
-              <button type="submit" id="chat-send-btn" class="chat-send-btn-new" aria-label="Send Message">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor; transform: rotate(45deg) translate(-1px, 1px);" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-              </button>
-            </div>
-          </form>
         </div>
       </div>
-    </div>
-  </div>
 
-{% else %}
-  <!-- Empty State / Clean Landing Interface (Figma-inspired HeyAI Style) -->
-  <div class="flex items-center justify-center min-h-[80vh] py-6 animate-fade-in-up">
-    <div class="assistant-page-container rounded-[24px] flex flex-col items-center justify-center w-full max-w-4xl py-12 px-8 overflow-hidden relative shadow-2xl text-center">
-      
-      <!-- Glowing decorative radial background -->
-      <div style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 75%); filter: blur(60px); pointer-events: none; z-index: 0;"></div>
-      
-      <!-- Subtle internal glows for empty dashboard -->
-      <div style="position: absolute; top: -10%; left: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0) 70%); filter: blur(40px); pointer-events: none; z-index: 0;"></div>
-      <div style="position: absolute; bottom: -10%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0) 70%); filter: blur(40px); pointer-events: none; z-index: 0;"></div>
-
-      <div class="relative w-full max-w-3xl z-10">
-        <!-- Back Link -->
-        <a href="{{ url_for('dashboard') }}" class="landing-back-btn mb-8">
-          <span>←</span> <span>Back to Portal</span>
-        </a>
-
-        <!-- Landing Title -->
-        <h1 class="font-black tracking-tight leading-tight mb-4" style="font-size: 3rem; background: linear-gradient(to right, #ffffff 30%, #c7d2fe 65%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Inter', sans-serif;">
-          Find belongings 🔍<br>that return home
-        </h1>
-
-        <!-- Description -->
-        <p class="text-slate-400 text-sm max-w-lg mx-auto mb-10 leading-relaxed font-medium">
-          Search the active LostLinks databases, check report coordinates, or query portal helpers. Enter a query below to get started.
-        </p>
-
-        <!-- Centered Input Search Form -->
-        <!-- Preview Container for Landing Page Photo -->
-        <div id="hero-upload-preview-container" class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 max-w-2xl mx-auto text-left relative z-20 animate-fade-in-up">
-          <img id="hero-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950" alt="Attached preview">
+      <!-- Chat Input Send Area -->
+      <div class="chat-input-area shrink-0">
+        <!-- Preview Container for Attached Photo -->
+        <div id="chat-upload-preview-container"
+          class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 shrink-0 relative z-20 animate-fade-in-up">
+          <img id="chat-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950"
+            alt="Attached preview">
           <div class="flex-1 min-w-0">
-            <p id="hero-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
+            <p id="chat-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
             <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Ready to send</p>
           </div>
-          <button type="button" class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors" onclick="clearHeroUpload()" title="Remove Photo">&times;</button>
+          <button type="button"
+            class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors"
+            onclick="clearChatUpload()" title="Remove Photo">&times;</button>
         </div>
 
-        <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data" class="w-full max-w-2xl mx-auto mb-8" onsubmit="showLoadingState('hero')">
-          <div class="chat-input-wrapper" style="padding: 6px 6px 6px 16px;">
-            <button type="button" id="hero-attach-btn" class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2 shrink-0" onclick="document.getElementById('hero-photo-file').click()" title="Attach Photo">
-              <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+        <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data"
+          onsubmit="showLoadingState('chat')">
+          <div class="chat-input-wrapper">
+            <!-- Attachment Button -->
+            <button type="button" id="chat-attach-btn"
+              class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2"
+              onclick="document.getElementById('chat-photo-file').click()" title="Attach Photo">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
             </button>
-            <input type="file" name="photo" id="hero-photo-file" accept="image/*" class="hidden" onchange="previewHeroUpload(this)">
+            <input type="file" name="photo" id="chat-photo-file" accept="image/*" class="hidden"
+              onchange="previewChatUpload(this)">
 
-            <input 
-              type="text" 
-              name="message" 
-              id="hero-chat-message-input"
-              placeholder="Type what you lost, ask a question, or check LHC 500 reports..." 
-              class="chat-input-field-new"
-              required
-              autocomplete="off"
-              autofocus
-            >
-            <button type="submit" id="hero-chat-send-btn" class="chat-send-btn-new shrink-0" style="width: auto; height: auto; padding: 10px 24px; border-radius: 9999px;">
-              Search AI
+            <input type="text" name="message" id="chat-message-input" class="chat-input-field-new"
+              placeholder="Search items, check reports, ask a question..." required autocomplete="off" autofocus>
+            <button type="submit" id="chat-send-btn" class="chat-send-btn-new" aria-label="Send Message">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                style="width: 18px; height: 18px; fill: currentColor; transform: rotate(45deg) translate(-1px, 1px);"
+                viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
             </button>
           </div>
         </form>
-
-        <!-- Suggested Chip Forms -->
-        <div class="flex flex-wrap justify-center gap-2.5 max-w-xl mx-auto mb-8">
-          <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
-            <input type="hidden" name="message" value="Show active lost items">
-            <button type="submit" class="suggestion-chip">
-              <span>🔍</span> <span>Active Lost Items</span>
-            </button>
-          </form>
-          
-          <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
-            <input type="hidden" name="message" value="Show active found items">
-            <button type="submit" class="suggestion-chip">
-              <span>🟢</span> <span>Active Found Items</span>
-            </button>
-          </form>
-
-          <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
-            <input type="hidden" name="message" value="How do I report a lost wallet?">
-            <button type="submit" class="suggestion-chip">
-              <span>📝</span> <span>How do I report?</span>
-            </button>
-          </form>
-
-          <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
-            <input type="hidden" name="message" value="What are the reports near Campus Area?">
-            <button type="submit" class="suggestion-chip">
-              <span>📍</span> <span>Campus Area reports</span>
-            </button>
-          </form>
-        </div>
-
-        <!-- Show History Link (Only if user has history in DB) -->
-        {% if history %}
-        <div class="mb-16 text-center">
-          <a href="{{ url_for('assistant_page', show_history='true') }}" class="landing-history-btn">
-            <span>💬</span> <span>View past discussion history ({{ history | length }} messages)</span>
-          </a>
-        </div>
-        {% else %}
-        <div class="mb-16"></div>
-        {% endif %}
-
-        <!-- Feature Capabilities Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <div class="capability-card">
-            <span class="capability-card-icon">🔍</span>
-            <h3 class="capability-card-title">Real-time Search</h3>
-            <p class="capability-card-desc">Scan database for active lost/found items</p>
-          </div>
-          <div class="capability-card cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200" onclick="toggleAssistantMap()" onkeydown="if(event.key === 'Enter' || event.key === ' ') { toggleAssistantMap(); }" role="button" tabindex="0" title="Toggle Campus Map">
-            <span class="capability-card-icon">📍</span>
-            <h3 class="capability-card-title">Map Locations</h3>
-            <p class="capability-card-desc">Trace coordinates and campus locations</p>
-          </div>
-          <div class="capability-card">
-            <span class="capability-card-icon">💬</span>
-            <h3 class="capability-card-title">Direct Chat</h3>
-            <p class="capability-card-desc">Get inline links to chat with item reporters</p>
-          </div>
-          <div class="capability-card">
-            <span class="capability-card-icon">📋</span>
-            <h3 class="capability-card-title">Easy Forms</h3>
-            <p class="capability-card-desc">Receive links and guidance on report listings</p>
-          </div>
-        </div>
-
-        <!-- Collapsible Campus Map View -->
-        <div id="assistant-map-container" class="hidden mt-8 w-full max-w-4xl mx-auto transition-all duration-500 ease-in-out transform opacity-0 translate-y-4">
-          <div class="bg-slate-900/80 border border-slate-800 rounded-[24px] p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden text-left">
-            
-            <!-- Subtle internal glow for map dashboard -->
-            <div style="position: absolute; top: -10%; left: -10%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0) 70%); filter: blur(30px); pointer-events: none; z-index: 0;"></div>
-            
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-5 relative z-10">
-              <div class="flex items-center gap-3">
-                <span class="text-2xl" style="text-shadow: 0 0 10px rgba(99,102,241,0.5);">🗺️</span>
-                <div>
-                  <h3 class="font-bold text-white text-base leading-tight">Campus Interactive Map</h3>
-                  <p class="text-xs text-slate-400 font-medium mt-0.5">Explore active report coordinates and campus landmarks</p>
-                </div>
-              </div>
-              <button onclick="toggleAssistantMap()" class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-800 hover:border-rose-500/20 focus:outline-none" title="Close Map">
-                &times;
-              </button>
-            </div>
-            
-            <!-- Map Container -->
-            <div class="relative w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/50 relative z-10" style="height: 420px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);">
-              <div id="assistant-inline-map" class="w-full h-full" style="height: 100%; width: 100%;"></div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
+</div>
+
+{% else %}
+<!-- Empty State / Clean Landing Interface (Figma-inspired HeyAI Style) -->
+<div class="flex items-center justify-center min-h-[80vh] py-6 animate-fade-in-up">
+  <div
+    class="assistant-page-container rounded-[24px] flex flex-col items-center justify-center w-full max-w-4xl py-12 px-8 overflow-hidden relative shadow-2xl text-center">
+
+    <!-- Glowing decorative radial background -->
+    <div
+      style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0) 75%); filter: blur(60px); pointer-events: none; z-index: 0;">
+    </div>
+
+    <!-- Subtle internal glows for empty dashboard -->
+    <div
+      style="position: absolute; top: -10%; left: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0) 70%); filter: blur(40px); pointer-events: none; z-index: 0;">
+    </div>
+    <div
+      style="position: absolute; bottom: -10%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0) 70%); filter: blur(40px); pointer-events: none; z-index: 0;">
+    </div>
+
+    <div class="relative w-full max-w-3xl z-10">
+      <!-- Back Link -->
+      <a href="{{ url_for('dashboard') }}" class="landing-back-btn mb-8">
+        <span>←</span> <span>Back to Portal</span>
+      </a>
+
+      <!-- Landing Title -->
+      <h1 class="font-black tracking-tight leading-tight mb-4"
+        style="font-size: 3rem; background: linear-gradient(to right, #ffffff 30%, #c7d2fe 65%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Inter', sans-serif;">
+        Find belongings 🔍<br>that return home
+      </h1>
+
+      <!-- Description -->
+      <p class="text-slate-400 text-sm max-w-lg mx-auto mb-10 leading-relaxed font-medium">
+        Search the active LostLinks databases, check report coordinates, or query portal helpers. Enter a query below to
+        get started.
+      </p>
+
+      <!-- Centered Input Search Form -->
+      <!-- Preview Container for Landing Page Photo -->
+      <div id="hero-upload-preview-container"
+        class="hidden flex items-center gap-3 p-3 bg-slate-900/80 border border-slate-800 rounded-2xl mb-3 max-w-2xl mx-auto text-left relative z-20 animate-fade-in-up">
+        <img id="hero-upload-preview" class="w-14 h-14 rounded-xl object-cover border border-slate-700 bg-slate-950"
+          alt="Attached preview">
+        <div class="flex-1 min-w-0">
+          <p id="hero-upload-filename" class="text-xs text-white font-bold truncate">filename.jpg</p>
+          <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Ready to send</p>
+        </div>
+        <button type="button"
+          class="text-slate-400 hover:text-rose-400 text-2xl font-bold px-3 focus:outline-none transition-colors"
+          onclick="clearHeroUpload()" title="Remove Photo">&times;</button>
+      </div>
+
+      <form action="{{ url_for('assistant_page') }}" method="POST" enctype="multipart/form-data"
+        class="w-full max-w-2xl mx-auto mb-8" onsubmit="showLoadingState('hero')">
+        <div class="chat-input-wrapper" style="padding: 6px 6px 6px 16px;">
+          <button type="button" id="hero-attach-btn"
+            class="text-slate-400 hover:text-white transition focus:outline-none flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-800 mr-2 shrink-0"
+            onclick="document.getElementById('hero-photo-file').click()" title="Attach Photo">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+          </button>
+          <input type="file" name="photo" id="hero-photo-file" accept="image/*" class="hidden"
+            onchange="previewHeroUpload(this)">
+
+          <input type="text" name="message" id="hero-chat-message-input" placeholder="Ask Assistant"
+            class="chat-input-field-new" required autocomplete="off" autofocus>
+          <button type="submit" id="hero-chat-send-btn" class="chat-send-btn-new shrink-0"
+            style="width: auto; height: auto; padding: 10px 24px; border-radius: 9999px;">
+            Search AI
+          </button>
+        </div>
+      </form>
+
+      <!-- Suggested Chip Forms -->
+      <div class="flex flex-wrap justify-center gap-2.5 max-w-xl mx-auto mb-8">
+        <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
+          <input type="hidden" name="message" value="Show active lost items">
+          <button type="submit" class="suggestion-chip">
+            <span>🔍</span> <span>Active Lost Items</span>
+          </button>
+        </form>
+
+        <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
+          <input type="hidden" name="message" value="Show active found items">
+          <button type="submit" class="suggestion-chip">
+            <span>🟢</span> <span>Active Found Items</span>
+          </button>
+        </form>
+
+        <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
+          <input type="hidden" name="message" value="How do I report a lost wallet?">
+          <button type="submit" class="suggestion-chip">
+            <span>📝</span> <span>How do I report?</span>
+          </button>
+        </form>
+
+        <form action="{{ url_for('assistant_page') }}" method="POST" onsubmit="showLoadingState('hero')">
+          <input type="hidden" name="message" value="What are the reports near Campus Area?">
+          <button type="submit" class="suggestion-chip">
+            <span>📍</span> <span>Campus Area reports</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Show History Link (Only if user has history in DB) -->
+      {% if history %}
+      <div class="mb-16 text-center">
+        <a href="{{ url_for('assistant_page', show_history='true') }}" class="landing-history-btn">
+          <span>💬</span> <span>View past discussion history ({{ history | length }} messages)</span>
+        </a>
+      </div>
+      {% else %}
+      <div class="mb-16"></div>
+      {% endif %}
+
+      <!-- Feature Capabilities Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+        <div class="capability-card">
+          <span class="capability-card-icon">🔍</span>
+          <h3 class="capability-card-title">Real-time Search</h3>
+          <p class="capability-card-desc">Scan database for active lost/found items</p>
+        </div>
+        <div class="capability-card cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200"
+          onclick="toggleAssistantMap()"
+          onkeydown="if(event.key === 'Enter' || event.key === ' ') { toggleAssistantMap(); }" role="button"
+          tabindex="0" title="Toggle Campus Map">
+          <span class="capability-card-icon">📍</span>
+          <h3 class="capability-card-title">Map Locations</h3>
+          <p class="capability-card-desc">Trace coordinates and campus locations</p>
+        </div>
+        <div class="capability-card">
+          <span class="capability-card-icon">💬</span>
+          <h3 class="capability-card-title">Direct Chat</h3>
+          <p class="capability-card-desc">Get inline links to chat with item reporters</p>
+        </div>
+        <div class="capability-card">
+          <span class="capability-card-icon">📋</span>
+          <h3 class="capability-card-title">Easy Forms</h3>
+          <p class="capability-card-desc">Receive links and guidance on report listings</p>
+        </div>
+      </div>
+
+      <!-- Collapsible Campus Map View -->
+      <div id="assistant-map-container"
+        class="hidden mt-8 w-full max-w-4xl mx-auto transition-all duration-500 ease-in-out transform opacity-0 translate-y-4">
+        <div
+          class="bg-slate-900/80 border border-slate-800 rounded-[24px] p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden text-left">
+
+          <!-- Subtle internal glow for map dashboard -->
+          <div
+            style="position: absolute; top: -10%; left: -10%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0) 70%); filter: blur(30px); pointer-events: none; z-index: 0;">
+          </div>
+
+          <!-- Header -->
+          <div class="flex justify-between items-center mb-5 relative z-10">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl" style="text-shadow: 0 0 10px rgba(99,102,241,0.5);">🗺️</span>
+              <div>
+                <h3 class="font-bold text-white text-base leading-tight">Campus Interactive Map</h3>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Explore active report coordinates and campus
+                  landmarks</p>
+              </div>
+            </div>
+            <button onclick="toggleAssistantMap()"
+              class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-800 hover:border-rose-500/20 focus:outline-none"
+              title="Close Map">
+              &times;
+            </button>
+          </div>
+
+          <!-- Map Container -->
+          <div class="relative w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/50 relative z-10"
+            style="height: 420px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);">
+            <div id="assistant-inline-map" class="w-full h-full" style="height: 100%; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endif %}
 
 <style>
@@ -356,14 +391,17 @@
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(12px) !important;
   }
+
   .leaflet-popup-tip {
     background: rgba(15, 23, 42, 0.96) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
   }
+
   .leaflet-popup-close-button {
     color: #94a3b8 !important;
     padding: 8px 8px 0 0 !important;
   }
+
   .leaflet-popup-close-button:hover {
     color: #f87171 !important;
   }
@@ -375,7 +413,7 @@
     const file = input.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         document.getElementById('chat-upload-preview').src = e.target.result;
         document.getElementById('chat-upload-filename').textContent = file.name;
         document.getElementById('chat-upload-preview-container').classList.remove('hidden');
@@ -398,7 +436,7 @@
     const file = input.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         document.getElementById('hero-upload-preview').src = e.target.result;
         document.getElementById('hero-upload-filename').textContent = file.name;
         document.getElementById('hero-upload-preview-container').classList.remove('hidden');
@@ -435,7 +473,7 @@
         loader.style.display = 'flex';
       }
       scrollToBottom();
-      
+
       const input = document.getElementById('chat-message-input');
       const btn = document.getElementById('chat-send-btn');
       if (btn) {
@@ -505,7 +543,7 @@
     const isHidden = container.classList.contains('hidden');
     if (isHidden) {
       container.classList.remove('hidden');
-      
+
       setTimeout(() => {
         container.classList.remove('opacity-0', 'translate-y-4');
         container.classList.add('opacity-100', 'translate-y-0');
@@ -518,11 +556,11 @@
           assistantInlineMap.invalidateSize();
         }, 100);
       }
-      
+
       setTimeout(() => {
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 300);
-      
+
     } else {
       container.classList.remove('opacity-100', 'translate-y-0');
       container.classList.add('opacity-0', 'translate-y-4');
@@ -602,7 +640,7 @@
     activeItems.forEach(item => {
       let itemCoords = null;
       const locationStr = item.location || "";
-      
+
       const coordsRegex = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/;
       const coordsMatch = locationStr.match(coordsRegex);
       if (coordsMatch) {
@@ -634,15 +672,15 @@
         const isLost = item.type === 'lost';
         const markerColor = isLost ? '#f43f5e' : '#10b981';
         const itemIcon = createSvgIcon(markerColor, 16, 3);
-        
+
         const marker = L.marker(itemCoords, { icon: itemIcon }).addTo(assistantInlineMap);
-        
+
         const typeLabel = isLost ? 'LOST' : 'FOUND';
-        const badgeStyle = isLost 
-          ? 'background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3);' 
+        const badgeStyle = isLost
+          ? 'background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3);'
           : 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);';
         const chatUrl = `/chat/${item.id}`;
-        
+
         const popupContent = `
           <div style="font-family: 'Inter', sans-serif; color: #f1f5f9; padding: 4px; max-width: 240px;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; gap: 8px;">

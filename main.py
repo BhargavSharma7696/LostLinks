@@ -311,8 +311,23 @@ def profile():
     if 'user_email' not in session:
         flash("Please log in to access the profile.", "error")
         return redirect(url_for('login'))
-    user = database.get_user(session['user_email'])
-    return render_template('profile.html', email=session['user_email'], user=user)
+    
+    user_email = session['user_email']
+    user = database.get_user(user_email)
+    
+    try:
+        user_lost_entries = database.get_lost_entries_by_user(user_email)
+    except Exception as e:
+        print(f"Error fetching user's reported lost items: {e}")
+        user_lost_entries = []
+
+    try:
+        user_found_entries = database.get_found_entries_by_user(user_email)
+    except Exception as e:
+        print(f"Error fetching user's reported found items: {e}")
+        user_found_entries = []
+        
+    return render_template('profile.html', email=user_email, user=user, user_lost_entries=user_lost_entries, user_found_entries=user_found_entries)
 
 @app.route('/update-profile', methods=["GET", "POST"])
 def update_profile():

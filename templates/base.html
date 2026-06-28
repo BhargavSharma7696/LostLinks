@@ -16,15 +16,45 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-color: #e0e0e0;
+      --bg-color-alpha: rgba(224, 224, 224, 0.8);
+      --shadow-light: #ffffff;
+      --shadow-dark: #bebebe;
+      --accent-color: #3b5998;
+      --text-main: #1e293b; /* slate-800 */
+      --text-muted: #64748b; /* slate-500 */
+      --scrollbar-thumb: #bebebe;
+      --scrollbar-thumb-hover: #a0a0a0;
+    }
+
+    body.dark-mode {
+      --bg-color: #1a1a1a;
+      --bg-color-alpha: rgba(26, 26, 26, 0.8);
+      --shadow-light: #333333;
+      --shadow-dark: #0a0a0a;
+      --accent-color: #00ADB5;
+      --text-main: #f1f5f9; /* slate-100 */
+      --text-muted: #94a3b8; /* slate-400 */
+      --scrollbar-thumb: #333333;
+      --scrollbar-thumb-hover: #4d4d4d;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f4f7fb;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
+
+    .text-main { color: var(--text-main) !important; transition: color 0.3s ease; }
+    .text-muted { color: var(--text-muted) !important; transition: color 0.3s ease; }
+    .text-accent { color: var(--accent-color) !important; transition: color 0.3s ease; }
 
     /* Modern Custom Scrollbar */
     html {
       scrollbar-width: thin;
-      scrollbar-color: #cbd5e1 transparent;
+      scrollbar-color: var(--scrollbar-thumb) transparent;
     }
 
     ::-webkit-scrollbar {
@@ -38,98 +68,173 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1;
+      background-color: var(--scrollbar-thumb);
       border-radius: 10px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background-color: #94a3b8;
+      background-color: var(--scrollbar-thumb-hover);
+    }
+    
+    /* Global Neumorphic Elements */
+    .neo-header {
+      background-color: var(--bg-color-alpha) !important;
+      backdrop-filter: blur(12px);
+      box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+      border-bottom: none;
+      transition: all 0.3s ease;
+    }
+    .neo-footer {
+      background-color: var(--bg-color) !important;
+      box-shadow: 4px -4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+      border-top: none !important;
+      transition: all 0.3s ease;
+    }
+    .neo-mobile-menu {
+      background-color: var(--bg-color) !important;
+      box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+      border-top: none !important;
+      transition: all 0.3s ease;
+    }
+    .neo-btn {
+      background-color: var(--bg-color);
+      border-radius: 12px;
+      box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      outline: none;
+      cursor: pointer;
+    }
+    .neo-btn:active {
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    }
+    .neo-card {
+      background-color: var(--bg-color);
+      border-radius: 24px;
+      box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+      transition: all 0.3s ease;
+    }
+    .neo-icon-box, .neo-input {
+      background-color: var(--bg-color);
+      border-radius: 16px;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+      transition: all 0.3s ease;
+      border: none;
+      outline: none;
+    }
+    .neo-input:focus {
+      box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
     }
   </style>
+  <script>
+    // Check local storage for theme early to prevent FOUC
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark'); // For Tailwind
+      document.addEventListener("DOMContentLoaded", () => document.body.classList.add('dark-mode'));
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const isDark = body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', isDark);
+      
+      const icon = isDark ? '🌙' : '🌓';
+      document.getElementById('theme-icon').textContent = icon;
+      document.getElementById('mobile-theme-icon').textContent = icon;
+    }
+  </script>
 </head>
 
 <body class="min-h-screen flex flex-col text-slate-800">
 
   <!-- Navigation Header -->
-  <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+  <header class="neo-header sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <a href="{{ url_for('index') }}" class="text-2xl font-bold text-primary tracking-tight" id="nav-logo-link">🔗
+      <a href="{{ url_for('index') }}" class="text-2xl font-bold text-accent tracking-tight" id="nav-logo-link">🔗
         LostLinks</a>
 
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex gap-4 items-center">
         {% if session.get('user_email') %}
-        <a href="{{ url_for('dashboard') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('dashboard') }}" class="text-main hover:text-accent font-medium transition"
           id="nav-dashboard-link">Dashboard</a>
-        <a href="{{ url_for('profile') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('profile') }}" class="text-main hover:text-accent font-medium transition"
           id="nav-profile-link">Profile</a>
-        <a href="{{ url_for('report_lost') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('report_lost') }}" class="text-main hover:text-accent font-medium transition"
           id="nav-report-lost-link">Report Lost</a>
-        <a href="{{ url_for('report_found') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('report_found') }}" class="text-main hover:text-accent font-medium transition"
           id="nav-report-found-link">Report Found</a>
-        <a href="{{ url_for('assistant_page') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('assistant_page') }}" class="neo-btn text-accent px-4 py-2 font-medium transition"
           id="nav-assistant-link">AI Assistant</a>
         <a href="{{ url_for('logout') }}"
-          class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-medium transition"
+          class="neo-btn text-main px-4 py-2 font-medium transition"
           id="nav-logout-btn">Log Out</a>
         {% else %}
-        <a href="{{ url_for('assistant_page') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('assistant_page') }}" class="neo-btn text-accent px-4 py-2 font-medium transition"
           id="nav-assistant-loggedout-link">AI Assistant</a>
-        <a href="{{ url_for('login') }}" class="text-slate-600 hover:text-primary font-medium transition"
+        <a href="{{ url_for('login') }}" class="neo-btn text-main px-4 py-2 font-medium transition"
           id="nav-login-link">Log In</a>
         <a href="{{ url_for('signup') }}"
-          class="bg-primary hover:bg-indigo-600 text-white px-5 py-2 rounded-xl font-medium shadow-md shadow-indigo-200 transition"
+          class="neo-btn text-accent px-4 py-2 font-bold transition"
           id="nav-signup-btn">Sign Up</a>
         {% endif %}
+        
+        <!-- Dark Mode Toggle Button -->
+        <button class="neo-btn theme-toggle-btn ml-2" onclick="toggleTheme()" aria-label="Toggle Dark Mode" style="width: 40px; height: 40px; font-size: 1.1rem;">
+          <span id="theme-icon">🌓</span>
+        </button>
       </nav>
 
-      <!-- Mobile Navigation Button -->
-      <button id="mobile-menu-btn"
-        class="md:hidden text-slate-600 hover:text-primary focus:outline-none p-2 rounded-xl hover:bg-slate-100 transition"
-        aria-label="Open Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          id="menu-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor" id="close-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <!-- Mobile Controls (Toggle + Hamburger) -->
+      <div class="flex md:hidden items-center gap-3">
+        <button class="neo-btn theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode" style="width: 36px; height: 36px; font-size: 1rem;">
+          <span id="mobile-theme-icon">🌓</span>
+        </button>
+        <button id="mobile-menu-btn"
+          class="neo-btn text-main focus:outline-none"
+          style="width: 36px; height: 36px;"
+          aria-label="Open Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            id="menu-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" id="close-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Mobile Navigation Dropdown -->
     <div id="mobile-menu"
-      class="hidden md:hidden bg-white border-t border-slate-100 px-4 py-4 shadow-lg absolute w-full left-0 z-40 transition-all origin-top transform scale-y-0 opacity-0"
+      class="hidden md:hidden neo-mobile-menu px-4 py-4 absolute w-full left-0 z-40 transition-all origin-top transform scale-y-0 opacity-0"
       style="transition: transform 0.2s ease-out, opacity 0.2s ease-out;">
       <div class="flex flex-col gap-2">
         {% if session.get('user_email') %}
         <a href="{{ url_for('dashboard') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">Dashboard</a>
+          class="neo-btn px-4 py-3 text-main transition text-center w-full mb-2">Dashboard</a>
         <a href="{{ url_for('report_lost') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">Report
-          Lost</a>
+          class="neo-btn px-4 py-3 text-main transition text-center w-full mb-2">Report Lost</a>
         <a href="{{ url_for('report_found') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">Report
-          Found</a>
+          class="neo-btn px-4 py-3 text-main transition text-center w-full mb-2">Report Found</a>
         <a href="{{ url_for('profile') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">Profile</a>
+          class="neo-btn px-4 py-3 text-main transition text-center w-full mb-2">Profile</a>
         <a href="{{ url_for('assistant_page') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">AI
-          Assistant</a>
+          class="neo-btn px-4 py-3 text-accent transition text-center w-full mb-2">AI Assistant</a>
         <a href="{{ url_for('logout') }}"
-          class="block text-center mt-4 bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-3 rounded-xl font-bold transition">Log
-          Out</a>
+          class="neo-btn px-4 py-3 text-main font-bold transition text-center w-full mb-2">Log Out</a>
         {% else %}
         <a href="{{ url_for('assistant_page') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition">AI
-          Assistant</a>
+          class="neo-btn text-accent px-4 py-3 font-medium transition text-center w-full mb-2">AI Assistant</a>
         <a href="{{ url_for('login') }}"
-          class="block px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-primary rounded-xl font-medium transition text-center">Log
-          In</a>
+          class="neo-btn text-main px-4 py-3 font-medium transition text-center w-full mb-2">Log In</a>
         <a href="{{ url_for('signup') }}"
-          class="block bg-primary hover:bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold shadow-md transition text-center mt-2">Sign
-          Up</a>
+          class="neo-btn text-accent px-5 py-3 font-bold transition text-center w-full mb-2">Sign Up</a>
         {% endif %}
       </div>
     </div>
@@ -159,7 +264,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+  <footer class="neo-footer py-6 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500 font-medium">
       &copy; LostLinks, 2026. Made with 💜 for IIT Bhilai.
     </div>
@@ -432,9 +537,7 @@
         mobileBtn.addEventListener('click', () => {
           const isHidden = mobileMenu.classList.contains('scale-y-0');
           if (isHidden) {
-            // Show menu
             mobileMenu.classList.remove('hidden');
-            // small delay to allow display:block to apply before animating transform
             setTimeout(() => {
               mobileMenu.classList.remove('scale-y-0', 'opacity-0');
               mobileMenu.classList.add('scale-y-100', 'opacity-100');
@@ -442,19 +545,43 @@
             menuIcon.classList.add('hidden');
             closeIcon.classList.remove('hidden');
           } else {
-            // Hide menu
             mobileMenu.classList.remove('scale-y-100', 'opacity-100');
             mobileMenu.classList.add('scale-y-0', 'opacity-0');
             menuIcon.classList.remove('hidden');
             closeIcon.classList.add('hidden');
-            // Wait for transition to finish before hiding display
             setTimeout(() => {
               mobileMenu.classList.add('hidden');
-            }, 200); // 200ms matches the transition duration
+            }, 200);
           }
         });
       }
     });
+
+    // Theme Toggle Functionality
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      if (isDark) {
+        localStorage.setItem('theme', 'dark');
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').textContent = '🌞';
+        document.getElementById('mobile-theme-icon').textContent = '🌞';
+      } else {
+        localStorage.setItem('theme', 'light');
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').textContent = '🌓';
+        document.getElementById('mobile-theme-icon').textContent = '🌓';
+      }
+    }
+
+    // Set initial icon on load
+    if (localStorage.getItem('theme') === 'dark') {
+      document.addEventListener("DOMContentLoaded", () => {
+        const desktopIcon = document.getElementById('theme-icon');
+        const mobileIcon = document.getElementById('mobile-theme-icon');
+        if (desktopIcon) desktopIcon.textContent = '🌞';
+        if (mobileIcon) mobileIcon.textContent = '🌞';
+      });
+    }
   </script>
 
   <!-- ====================================================== -->

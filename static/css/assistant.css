@@ -37,23 +37,30 @@
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4), 0 8px 10px -6px rgba(99, 102, 241, 0.4);
+  background: var(--bg-color);
+  box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 9999;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   outline: none;
   text-decoration: none;
 }
 
 .assistant-bubble:hover {
   transform: scale(1.12) translateY(-2px);
-  box-shadow: 0 20px 30px -5px rgba(99, 102, 241, 0.5), 0 10px 15px -5px rgba(99, 102, 241, 0.4);
-  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+}
+
+.assistant-bubble:active {
+  box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+}
+
+.assistant-bubble svg {
+  color: var(--accent-color) !important;
 }
 
 .assistant-ping-container {
@@ -72,8 +79,8 @@
   height: 100%;
   width: 100%;
   border-radius: 9999px;
-  background-color: #a78bfa;
-  opacity: 0.75;
+  background-color: var(--accent-color);
+  opacity: 0.5;
   animation: assistant-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
@@ -83,9 +90,9 @@
   border-radius: 9999px;
   height: 14px;
   width: 14px;
-  background-color: #8b5cf6;
-  border: 2.5px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--accent-color);
+  border: 2.5px solid var(--bg-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes assistant-ping {

@@ -18,21 +18,21 @@
     </div>
   </div>
 
-  <div class="animate-fade-in-up bg-white/80 backdrop-blur-2xl rounded-[24px] shadow-2xl shadow-slate-200/50 p-8 md:p-12 w-full max-w-md border border-white/50 relative z-10">
+  <div class="neo-card p-8 md:p-12 w-full max-w-md relative z-10 animate-fade-in-up">
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-slate-800 mb-2" id="signup-title">Create Account</h1>
-      <p class="text-slate-500 font-medium">Sign up to start secure credentials workspace</p>
+      <h1 class="text-3xl font-bold text-main mb-2" id="signup-title">Create Account</h1>
+      <p class="text-muted font-medium">Sign up to start secure credentials workspace</p>
     </div>
 
     <form action="{{ url_for('signup') }}" method="POST" id="signup-form" novalidate class="space-y-5">
       <!-- Email Input -->
       <div>
-        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2" id="label-email">Email Address</label>
+        <label for="email" class="block text-sm font-semibold text-main mb-2" id="label-email">Email Address</label>
         <input 
           type="email" 
           name="email" 
           id="email" 
-          class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" 
+          class="neo-input w-full text-main px-4 py-3" 
           placeholder="name@iitbhilai.ac.in" 
           required 
           autocomplete="email"
@@ -42,12 +42,12 @@
 
       <!-- Password Input -->
       <div>
-        <label for="password" class="block text-sm font-semibold text-slate-700 mb-2" id="label-password">Password</label>
+        <label for="password" class="block text-sm font-semibold text-main mb-2" id="label-password">Password</label>
         <input 
           type="password" 
           name="password" 
           id="password" 
-          class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" 
+          class="neo-input w-full text-main px-4 py-3" 
           placeholder="At least 8 characters" 
           required 
           autocomplete="new-password"
@@ -57,12 +57,12 @@
 
       <!-- Confirm Password Input -->
       <div>
-        <label for="confirm_password" class="block text-sm font-semibold text-slate-700 mb-2" id="label-confirm-password">Confirm Password</label>
+        <label for="confirm_password" class="block text-sm font-semibold text-main mb-2" id="label-confirm-password">Confirm Password</label>
         <input 
           type="password" 
           name="confirm_password" 
           id="confirm_password" 
-          class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" 
+          class="neo-input w-full text-main px-4 py-3" 
           placeholder="••••••••" 
           required 
           autocomplete="new-password"
@@ -71,13 +71,13 @@
       </div>
 
       <!-- Submit Button -->
-      <button type="submit" class="w-full bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl px-4 py-3 mt-4 shadow-md shadow-indigo-200 transition" id="signup-submit-btn">
+      <button type="submit" class="neo-btn w-full text-accent font-bold px-4 py-3 mt-4" id="signup-submit-btn">
         Create Account
       </button>
     </form>
 
-    <div class="text-center mt-6 text-slate-500 font-medium text-sm">
-      <p>Already have an account? <a href="{{ url_for('login') }}" class="text-primary hover:text-indigo-700 font-bold transition" id="login-link">Sign In</a></p>
+    <div class="text-center mt-6 text-muted font-medium text-sm">
+      <p>Already have an account? <a href="{{ url_for('login') }}" class="text-accent font-bold hover:opacity-80 transition" id="login-link">Sign In</a></p>
     </div>
   </div>
 </div>

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.lostlinks",
+      "sha256_cert_fingerprints": [
+        "87:A0:74:51:73:28:45:7A:77:61:2E:37:BE:DE:4D:BE:BC:21:A4:96:77:31:14:45:70:5C:77:12:04:F2:CC:79"
+      ]
+    }
+  }
+]

@@ -1,5 +1,5 @@
 import database
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -235,7 +235,7 @@ def fetch_items() -> dict:
     return {"items" : all_items}
 
 @tool
-def fetch_reported_by_user(email):
+def fetch_reported_by_user(email: str):
     """Fetch items reported by a specific user from the database. Active items are items that are not resolved.
     Args:
         email: The email of the user to fetch items for.
@@ -279,7 +279,7 @@ def find_landmark(location_str: str) -> Optional[str]:
     return None
 
 @tool
-def fetch_items_nearby(location):
+def fetch_items_nearby(location: str):
     """Fetch items that are nearby to the given location. Return the items in a list.
     Example query : 1. tell me reports in area lhc 500 --> location = lhc 500
                     2. can you find items lost or found nearby Kanhar --> location = kanhar
@@ -375,7 +375,7 @@ def analyze_item_image(image_url: str) -> dict:
         return {"error": f"Gemini API error: {str(e)}"}
 
 @tool
-def make_report(email = None, title = None, description = None, location = None, category = None, image = None, type = None, losttime = None):
+def make_report(email: Optional[str] = None, title: Optional[str] = None, description: Optional[str] = None, location: Optional[str] = None, category: Optional[str] = None, image: Optional[str] = None, type: Optional[str] = None, losttime: Optional[str] = None):
     """
     If the user provides details about any founding or lost item, use this tool to make a report for the user.
     If reporting a found item (type='found'), 'image' is strictly MANDATORY. If reporting a lost item, 'image' is optional.
@@ -475,18 +475,32 @@ tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, make_report]
 tool_node = ToolNode(tools)
 
 def get_assistant_model():
-    groq_api_key = os.getenv("GROQ_API_KEY")
+    key1 = os.getenv("gemini_key_1")
+    key2 = os.getenv("gemini_key_2")
+    key3 = os.getenv("gemini_key_3")
     
-    primary_llm = ChatGroq(model_name="qwen/qwen3-32b",temperature=0.0,max_retries=1,timeout=30,groq_api_key=groq_api_key)
+    keys = [k for k in [key3, key2, key1] if k and k.strip()]
+    if not keys:
+        keys = [""]
+        
+    models = []
+    for k in keys:
+        models.append(ChatGoogleGenerativeAI(
+            model="gemini-3.1-flash-lite",
+            temperature=0.0,
+            google_api_key=k,
+            max_retries=3,
+            timeout=30
+        ))
+        
+    primary_llm = models[0]
+    fallback_llms = models[1:]
     
-    fallback_llms = [
-        ChatGroq(model_name="openai/gpt-oss-120b", temperature=0.0, max_retries=1,timeout=30, groq_api_key=groq_api_key),
-        ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.0, max_retries=1,timeout=30, groq_api_key=groq_api_key),
-        ChatGroq(model_name="qwen/qwen3.6-27b", temperature=0.0, max_retries=1,timeout=30, groq_api_key=groq_api_key),
-        ChatGroq(model_name="openai/gpt-oss-20b", temperature=0.0, max_retries=1,timeout=30, groq_api_key=groq_api_key)
-    ]
-    
-    model = primary_llm.with_fallbacks(fallback_llms)
+    if fallback_llms:
+        model = primary_llm.with_fallbacks(fallback_llms)
+    else:
+        model = primary_llm
+        
     return model.bind_tools(tools)
 
 model = get_assistant_model()
@@ -523,6 +537,17 @@ if __name__ == "__main__":
         if user_input.lower() == "exit":
             break
         response = app.invoke({"messages": [HumanMessage(content=user_input)]}, config={"configurable": {"thread_id": thread_id}})
-        print("Assistant: ", response["messages"][-1].content)
+        raw_content = response["messages"][-1].content
+        if isinstance(raw_content, list):
+            text_parts = []
+            for part in raw_content:
+                if isinstance(part, str):
+                    text_parts.append(part)
+                elif isinstance(part, dict) and "text" in part:
+                    text_parts.append(part["text"])
+            assistant_text = "".join(text_parts)
+        else:
+            assistant_text = str(raw_content)
+        print("Assistant: ", assistant_text)
         print("="*81)
         print(response["messages"])

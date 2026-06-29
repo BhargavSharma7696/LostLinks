@@ -6,8 +6,6 @@ import login_data
 from datetime import datetime
 import re
 from cam import upload_photo
-from Assistant import app as assistant_app
-from langchain_core.messages import HumanMessage
 import mailer
 
 app = Flask(__name__, template_folder="templates")
@@ -838,6 +836,10 @@ def assistant_page():
         return redirect(url_for('login'))
     
     email = session['user_email']
+    
+    # Lazy load assistant to optimize startup memory
+    from Assistant import app as assistant_app
+    from langchain_core.messages import HumanMessage
 
     if request.method == 'POST':
         message = request.form.get('message', '').strip()
@@ -871,7 +873,17 @@ def assistant_page():
             try:
                 config = {"configurable": {"thread_id": email}}
                 result = assistant_app.invoke({"messages": [HumanMessage(content=agent_msg_content)]}, config=config)
-                response_text = result["messages"][-1].content
+                raw_content = result["messages"][-1].content
+                if isinstance(raw_content, list):
+                    text_parts = []
+                    for part in raw_content:
+                        if isinstance(part, str):
+                            text_parts.append(part)
+                        elif isinstance(part, dict) and "text" in part:
+                            text_parts.append(part["text"])
+                    response_text = "".join(text_parts)
+                else:
+                    response_text = str(raw_content)
             except Exception as e:
                 print(f"Error invoking AI assistant: {e}")
                 err_msg = str(e).lower()

@@ -6,6 +6,6 @@ Pyrebase4>=4.5.0
 gunicorn>=20.1.0
 langchain
 langchain_core
-langchain_groq
+langchain-google-genai
 langgraph
 google.generativeai

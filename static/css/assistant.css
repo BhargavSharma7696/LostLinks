@@ -709,3 +709,21 @@
   }
 }
 
+/* Sidebar Collapse on Desktop */
+@media (min-width: 768px) {
+  #assistant-sidebar {
+    transition: all 0.3s ease-in-out !important;
+  }
+  #assistant-sidebar.sidebar-collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    border-right-width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+  }
+}
+
+

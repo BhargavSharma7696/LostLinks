@@ -24,41 +24,41 @@
           <span class="text-slate-700 font-bold">{{ user.displayName if user else 'N/A' }}</span>
         </p>
         <div
-          class="mt-2 sm:mt-3 inline-block bg-white border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold shadow-sm truncate max-w-full"
+          class="mt-2 sm:mt-3 inline-block bg-white border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold shadow-sm break-all max-w-full"
           id="user-email-badge-value">
           {{ email }}
         </div>
       </div>
     </div>
 
-    <div class="flex flex-nowrap gap-2 sm:gap-4 w-full lg:w-auto justify-between sm:justify-center relative z-10">
+    <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:flex lg:flex-nowrap justify-between sm:justify-center relative z-10">
       <!-- Stat Card 1 -->
       <div
-        class="bg-white/80 rounded-2xl p-2 sm:p-4 flex-1 aspect-square sm:aspect-auto sm:flex-none sm:min-w-[120px] flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
-        <div class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">Total Active</div>
-        <div class="flex justify-center gap-2 sm:gap-4">
-          <div class="text-rose-500 font-bold text-lg sm:text-xl"><span class="text-[10px] sm:text-xs text-slate-400 block -mb-1">Lost</span>{{
+        class="bg-white/80 rounded-2xl py-3 px-1.5 sm:p-4 flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 mb-1">Total Active</div>
+        <div class="flex justify-center gap-1 sm:gap-4">
+          <div class="text-rose-500 font-bold text-sm sm:text-xl"><span class="text-[9px] sm:text-xs text-slate-400 block -mb-1">Lost</span>{{
             lost_unresolved_entries|length + lost_resolved_entries|length }}</div>
-          <div class="text-emerald-500 font-bold text-lg sm:text-xl"><span
-              class="text-[10px] sm:text-xs text-slate-400 block -mb-1">Found</span>{{ found_unresolved_entries|length +
+          <div class="text-emerald-500 font-bold text-sm sm:text-xl"><span
+              class="text-[9px] sm:text-xs text-slate-400 block -mb-1">Found</span>{{ found_unresolved_entries|length +
             found_resolved_entries|length }}</div>
         </div>
       </div>
       <!-- Stat Card 2 -->
       <div
-        class="bg-white/80 rounded-2xl p-2 sm:p-4 flex-1 aspect-square sm:aspect-auto sm:flex-none sm:min-w-[120px] flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
-        <div class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">Resolved</div>
-        <div class="flex justify-center gap-2 sm:gap-4">
-          <div class="text-emerald-500 font-bold text-lg sm:text-xl">{{ found_resolved_entries|length +lost_resolved_entries|length
+        class="bg-white/80 rounded-2xl py-3 px-1.5 sm:p-4 flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 mb-1">Resolved</div>
+        <div class="flex justify-center gap-1 sm:gap-4">
+          <div class="text-emerald-500 font-bold text-sm sm:text-xl">{{ found_resolved_entries|length +lost_resolved_entries|length
             }}</div>
         </div>
       </div>
       <!-- Stat Card 3 -->
       <div
-        class="bg-white/80 rounded-2xl p-2 sm:p-4 flex-1 aspect-square sm:aspect-auto sm:flex-none sm:min-w-[120px] flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
-        <div class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">Unresolved</div>
-        <div class="flex justify-center gap-2 sm:gap-4">
-          <div class="text-rose-500 font-bold text-lg sm:text-xl">{{ lost_unresolved_entries|length +
+        class="bg-white/80 rounded-2xl py-3 px-1.5 sm:p-4 flex flex-col items-center justify-center text-center border border-indigo-50 shadow-sm backdrop-blur-sm">
+        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 mb-1">Unresolved</div>
+        <div class="flex justify-center gap-1 sm:gap-4">
+          <div class="text-rose-500 font-bold text-sm sm:text-xl">{{ lost_unresolved_entries|length +
             found_unresolved_entries|length}}</div>
         </div>
       </div>
@@ -108,9 +108,9 @@
         <a href="{{ url_for('chat', item_id=entry.id) }}"
           class="group item-dashboard-card block bg-gradient-to-br from-rose-50 to-white rounded-[24px] shadow-sm border border-rose-100 hover:border-rose-300 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 p-6"
           data-category="{{ entry.category }}">
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="item-card-title text-xl font-bold text-slate-800">{{ entry.title }}</h3>
-            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{{
+          <div class="flex justify-between items-start mb-4 gap-2">
+            <h3 class="item-card-title text-xl font-bold text-slate-800 flex-1 min-w-0 break-words">{{ entry.title }}</h3>
+            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{{
               entry.category }}</span>
           </div>
 
@@ -122,7 +122,7 @@
               </button>
             </p>
             <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
-            <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
+            <p class="break-all"><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
           </div>
 
           <p class="text-slate-700 text-sm mb-4 line-clamp-3 item-card-description">{{ entry.description }}</p>
@@ -161,9 +161,9 @@
         <a href="{{ url_for('chat', item_id=entry.id) }}"
           class="group item-dashboard-card block bg-gradient-to-br from-emerald-50 to-white rounded-[24px] shadow-sm border border-emerald-100 hover:border-emerald-300 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 p-6"
           data-category="{{ entry.category }}">
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="item-card-title text-xl font-bold text-slate-800">{{ entry.title }}</h3>
-            <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{{
+          <div class="flex justify-between items-start mb-4 gap-2">
+            <h3 class="item-card-title text-xl font-bold text-slate-800 flex-1 min-w-0 break-words">{{ entry.title }}</h3>
+            <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{{
               entry.category }}</span>
           </div>
 
@@ -175,7 +175,7 @@
               </button>
             </p>
             <p><b>⏰ Time:</b> {{ " ".join(entry.losttime.split("T")) if entry.losttime else "N/A" }}</p>
-            <p><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
+            <p class="break-all"><b>👤 Contact:</b> <span class="text-indigo-600">{{ entry.reporterid }}</span></p>
           </div>
 
           <p class="text-slate-700 text-sm mb-4 line-clamp-3 item-card-description">{{ entry.description }}</p>
@@ -219,9 +219,9 @@
           <a href="{{ url_for('chat', item_id=entry.id) }}"
             class="item-dashboard-card block bg-slate-50 rounded-[20px] border border-slate-200 p-5 opacity-70 hover:opacity-100 transition"
             data-category="{{ entry.category }}">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through">{{ entry.title }}</h3>
-              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
+            <div class="flex justify-between items-start mb-2 gap-2">
+              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through flex-1 min-w-0 break-words">{{ entry.title }}</h3>
+              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full shrink-0">Resolved</span>
             </div>
             <div class="text-xs text-slate-500 item-card-details">
               <p class="flex items-center gap-1 flex-wrap">
@@ -250,9 +250,9 @@
           <a href="{{ url_for('chat', item_id=entry.id) }}"
             class="item-dashboard-card block bg-slate-50 rounded-[20px] border border-slate-200 p-5 opacity-70 hover:opacity-100 transition"
             data-category="{{ entry.category }}">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through">{{ entry.title }}</h3>
-              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">Resolved</span>
+            <div class="flex justify-between items-start mb-2 gap-2">
+              <h3 class="item-card-title text-lg font-bold text-slate-600 line-through flex-1 min-w-0 break-words">{{ entry.title }}</h3>
+              <span class="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full shrink-0">Resolved</span>
             </div>
             <div class="text-xs text-slate-500 item-card-details">
               <p class="flex items-center gap-1 flex-wrap">

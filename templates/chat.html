@@ -10,160 +10,175 @@
     <div class="w-full md:w-2/5 lg:w-1/3 bg-slate-50 border-r border-slate-200 overflow-y-auto p-6 flex flex-col gap-4 relative">
       <a href="{{ url_for('dashboard') }}" class="absolute top-4 right-4 bg-white hover:bg-slate-100 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition" title="Go back to Dashboard">&times;</a>
       
-      <h2 class="text-2xl font-bold text-slate-800 pr-8 leading-tight mb-2">{{ item.title }}</h2>
-      
-      {% if item.photourl %}
-      <div class="w-full rounded-[16px] overflow-hidden bg-slate-200 border border-slate-300 shadow-sm shrink-0">
-        <img src="{{ item.photourl }}" alt="{{ item.title }}" class="w-full object-cover max-h-64 cursor-pointer transition duration-300 hover:scale-105" onclick="openImageModal('{{ item.photourl }}')">
-      </div>
-      {% endif %}
-      
-      <div class="flex flex-col gap-3 mt-2">
-        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
-          <span class="font-bold text-slate-500">Category</span>
-          <span class="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">{{ item.category }}</span>
+      <!-- Mobile-friendly header with toggle button -->
+      <div class="flex md:hidden items-center justify-between w-full border-b border-slate-200 pb-3 mb-1">
+        <div class="min-w-0 flex-1 pr-2">
+          <h2 class="text-lg font-bold text-slate-800 truncate">{{ item.title }}</h2>
+          <span class="inline-block bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-indigo-100 uppercase tracking-wide mt-0.5">{{ item.status }}</span>
         </div>
-        
-        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
-          <span class="font-bold text-slate-500">📍 Location</span>
-          <button onclick="showLocationMap(event, '{{ item.location }}')" class="font-semibold text-primary hover:text-indigo-800 hover:underline text-right max-w-[60%] select-all focus:outline-none cursor-pointer transition">
-            {{ item.location }}
-          </button>
-        </div>
-        
-        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
-          <span class="font-bold text-slate-500">⏰ Date & Time</span>
-          <span class="font-semibold text-slate-800 text-right max-w-[60%]">{{ " ".join(item.losttime.split("T")) if item.losttime else "N/A" }}</span>
-        </div>
-        
-        <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
-          <span class="font-bold text-slate-500">👤 Reporter</span>
-          <div class="flex flex-col items-end max-w-[60%]">
-            <span class="font-semibold text-indigo-600 break-all text-right">{{ item.reporterid }}</span>
-            {% if item.reporterid != email %}
-              <button onclick="openEmailModal()" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-bold mt-1 cursor-pointer transition focus:outline-none">📧 Send Email</button>
-            {% endif %}
-          </div>
-        </div>
-        
-        <div class="flex justify-between items-start text-sm pb-2">
-          <span class="font-bold text-slate-500">Status</span>
-          <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-            {{ item.status }}
-          </span>
-        </div>
-      </div>
-      
-      <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm mt-2">
-        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Description</span>
-        <p class="text-slate-700 text-sm leading-relaxed">{{ item.description }}</p>
+        <button id="toggle-details-btn" onclick="toggleMobileDetails()" class="shrink-0 text-xs font-bold text-primary bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-xl transition flex items-center gap-1 focus:outline-none">
+          <span id="toggle-details-icon">ℹ️</span> <span id="toggle-details-text">Show Details</span>
+        </button>
       </div>
 
-      <!-- Claim and Resolution section -->
-      <div class="bg-white border border-slate-200 p-5 rounded-[20px] shadow-sm mt-2 flex flex-col gap-4">
-        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Claim Status</span>
+      <!-- Desktop-only Header (Hidden on mobile) -->
+      <h2 class="hidden md:block text-2xl font-bold text-slate-800 pr-8 leading-tight mb-2">{{ item.title }}</h2>
+      
+      <!-- Collapsible Container for Mobile / Static on Desktop -->
+      <div id="mobile-details-content" class="hidden md:flex flex-col gap-4 w-full">
+        {% if item.photourl %}
+        <div class="w-full rounded-[16px] overflow-hidden bg-slate-200 border border-slate-300 shadow-sm shrink-0">
+          <img src="{{ item.photourl }}" alt="{{ item.title }}" class="w-full object-cover max-h-64 cursor-pointer transition duration-300 hover:scale-105" onclick="openImageModal('{{ item.photourl }}')">
+        </div>
+        {% endif %}
         
-        {% if item.status == 'resolved' %}
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-            <span class="text-sm font-semibold text-slate-500">This report has been resolved.</span>
-            {% if item.resolvedto %}
-              <div class="mt-2 text-xs font-semibold text-slate-600 bg-slate-100 py-1.5 px-3 rounded-lg inline-block border border-slate-200">
-                Resolved to: <span class="text-indigo-600 font-semibold">{{ item.resolvedto }}</span>
-              </div>
-              {% if item.resolvedto == email %}
-                <div class="mt-2 text-sm font-bold text-emerald-600">
-                  🎉 Item returned to you!
-                </div>
-              {% endif %}
-            {% endif %}
+        <div class="flex flex-col gap-3 mt-2">
+          <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+            <span class="font-bold text-slate-500">Category</span>
+            <span class="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">{{ item.category }}</span>
           </div>
-        {% else %}
-          {% if item.reporterid == email %}
-            <!-- For Owner/Reporter -->
-            <div class="flex flex-col gap-3">
-              {% if item.type == 'found' %} 
-                <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review claims or mark this item as returned once claimed and resolved.</p>
-              {% else %}
-                <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review found or mark this item as resolved once you get it back.</p>
+          
+          <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+            <span class="font-bold text-slate-500">📍 Location</span>
+            <button onclick="showLocationMap(event, '{{ item.location }}')" class="font-semibold text-primary hover:text-indigo-800 hover:underline text-right max-w-[60%] select-all focus:outline-none cursor-pointer transition">
+              {{ item.location }}
+            </button>
+          </div>
+          
+          <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+            <span class="font-bold text-slate-500">⏰ Date & Time</span>
+            <span class="font-semibold text-slate-800 text-right max-w-[60%]">{{ " ".join(item.losttime.split("T")) if item.losttime else "N/A" }}</span>
+          </div>
+          
+          <div class="flex justify-between items-start text-sm border-b border-slate-200 pb-2">
+            <span class="font-bold text-slate-500">👤 Reporter</span>
+            <div class="flex flex-col items-end max-w-[60%]">
+              <span class="font-semibold text-indigo-600 break-all text-right">{{ item.reporterid }}</span>
+              {% if item.reporterid != email %}
+                <button onclick="openEmailModal()" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-bold mt-1 cursor-pointer transition focus:outline-none">📧 Send Email</button>
               {% endif %}
-              
-              {% if item.claimsmade %}
-                {% if item.type == 'found' %}
-                <div class="flex flex-col gap-3">
-                  <span class="text-xs font-bold text-slate-600">Claims Received:</span>
-                  <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
-                    <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                      <option value="" disabled selected>Select Claimant to Resolve</option>
-                      {% for claimant in item.claimsmade %}
-                        <option value="{{ claimant }}">{{ claimant }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-md shadow-emerald-900/30 hover:shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1.5">
-                      Confirm Resolve
-                    </button>
-                  </form>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-start text-sm pb-2">
+            <span class="font-bold text-slate-500">Status</span>
+            <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+              {{ item.status }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm mt-2">
+          <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Description</span>
+          <p class="text-slate-700 text-sm leading-relaxed">{{ item.description }}</p>
+        </div>
+
+        <!-- Claim and Resolution section -->
+        <div class="bg-white border border-slate-200 p-5 rounded-[20px] shadow-sm mt-2 flex flex-col gap-4">
+          <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Claim Status</span>
+          
+          {% if item.status == 'resolved' %}
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+              <span class="text-sm font-semibold text-slate-500">This report has been resolved.</span>
+              {% if item.resolvedto %}
+                <div class="mt-2 text-xs font-semibold text-slate-600 bg-slate-100 py-1.5 px-3 rounded-lg inline-block border border-slate-200">
+                  Resolved to: <span class="text-indigo-600 font-semibold">{{ item.resolvedto }}</span>
                 </div>
-                {% else %}
-                <div class="flex flex-col gap-3">
-                  <span class="text-xs font-bold text-slate-600">Found such Item:</span>
-                  <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
-                    <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
-                      <option value="" disabled selected>Select Person to Resolve</option>
-                      {% for claimant in item.claimsmade %}
-                        <option value="{{ claimant }}">{{ claimant }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-md shadow-emerald-900/30 hover:shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1.5">
-                      Confirm Resolve
-                    </button>
-                  </form>
-                </div>
+                {% if item.resolvedto == email %}
+                  <div class="mt-2 text-sm font-bold text-emerald-600">
+                    🎉 Item returned to you!
+                  </div>
                 {% endif %}
-              {% else %}
-                <div class="text-xs font-semibold text-slate-400 italic bg-slate-50 rounded-xl p-3 border border-dashed border-slate-200 text-center">
-                  No claims submitted yet.
-                </div>
               {% endif %}
             </div>
           {% else %}
-            <!-- For Other Users -->
-            {% if email in item.claimsmade %}
-              {% if item.type == 'found' %}
-                <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
-                  <div class="text-base mb-1">✓</div>
-                  Your claim has been submitted to the reporter. They will contact you shortly if it matches.
-                </div>
-              {% else %}
-                <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
-                  <div class="text-base mb-1">✓</div>
-                  Your found status has been submitted to the reporter. They will contact you shortly.
-                </div>
-              {% endif %}
+            {% if item.reporterid == email %}
+              <!-- For Owner/Reporter -->
+              <div class="flex flex-col gap-3">
+                {% if item.type == 'found' %} 
+                  <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review claims or mark this item as returned once claimed and resolved.</p>
+                {% else %}
+                  <p class="text-xs text-slate-500 font-medium">As the reporter of this item, you can review found or mark this item as resolved once you get it back.</p>
+                {% endif %}
+                
+                {% if item.claimsmade %}
+                  {% if item.type == 'found' %}
+                  <div class="flex flex-col gap-3">
+                    <span class="text-xs font-bold text-slate-600">Claims Received:</span>
+                    <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
+                      <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                        <option value="" disabled selected>Select Claimant to Resolve</option>
+                        {% for claimant in item.claimsmade %}
+                          <option value="{{ claimant }}">{{ claimant }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-md shadow-emerald-900/30 hover:shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1.5">
+                        Confirm Resolve
+                      </button>
+                    </form>
+                  </div>
+                  {% else %}
+                  <div class="flex flex-col gap-3">
+                    <span class="text-xs font-bold text-slate-600">Found such Item:</span>
+                    <form action="{{ url_for('resolve_item', item_id=item.id) }}" method="POST" class="w-full flex flex-col gap-2" onsubmit="return confirm('Are you sure you want to resolve this item to the selected claimant?');">
+                      <select name="resolved_to" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required>
+                        <option value="" disabled selected>Select Person to Resolve</option>
+                        {% for claimant in item.claimsmade %}
+                          <option value="{{ claimant }}">{{ claimant }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-md shadow-emerald-900/30 hover:shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-0.5 transform duration-150 cursor-pointer flex items-center justify-center gap-1.5">
+                        Confirm Resolve
+                      </button>
+                    </form>
+                  </div>
+                  {% endif %}
+                {% else %}
+                  <div class="text-xs font-semibold text-slate-400 italic bg-slate-50 rounded-xl p-3 border border-dashed border-slate-200 text-center">
+                    No claims submitted yet.
+                  </div>
+                {% endif %}
+              </div>
             {% else %}
-              {% if item.type == 'found' %}
-                <div class="flex flex-col gap-3">
-                  <p class="text-xs text-slate-500 font-medium">If this item belongs to you, or you have recovered it, submit a claim to notify the reporter.</p>
-                  <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
-                      Claim Item
-                    </button>
-                  </form>
-                </div>
+              <!-- For Other Users -->
+              {% if email in item.claimsmade %}
+                {% if item.type == 'found' %}
+                  <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
+                    <div class="text-base mb-1">✓</div>
+                    Your claim has been submitted to the reporter. They will contact you shortly if it matches.
+                  </div>
+                {% else %}
+                  <div class="bg-indigo-50 border border-indigo-100 text-indigo-850 rounded-xl p-4 text-center text-xs font-semibold">
+                    <div class="text-base mb-1">✓</div>
+                    Your found status has been submitted to the reporter. They will contact you shortly.
+                  </div>
+                {% endif %}
               {% else %}
-                <div class="flex flex-col gap-3">
-                  <p class="text-xs text-slate-500 font-medium">If you got this item, respond here to notify the reporter.</p>
-                  <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
-                      Found similar Item
-                    </button>
-                  </form>
-                </div>
+                {% if item.type == 'found' %}
+                  <div class="flex flex-col gap-3">
+                    <p class="text-xs text-slate-500 font-medium">If this item belongs to you, or you have recovered it, submit a claim to notify the reporter.</p>
+                    <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
+                      <input type="hidden" name="item_id" value="{{ item.id }}">
+                      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
+                        Claim Item
+                      </button>
+                    </form>
+                  </div>
+                {% else %}
+                  <div class="flex flex-col gap-3">
+                    <p class="text-xs text-slate-500 font-medium">If you got this item, respond here to notify the reporter.</p>
+                    <form action="{{ url_for('claim_item') }}" method="POST" class="w-full">
+                      <input type="hidden" name="item_id" value="{{ item.id }}">
+                      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer">
+                        Found similar Item
+                      </button>
+                    </form>
+                  </div>
+                {% endif %}
               {% endif %}
             {% endif %}
           {% endif %}
-        {% endif %}
+        </div>
       </div>
     </div>
     
@@ -236,6 +251,16 @@
 </div>
 
 <script>
+  // HTML escape helper
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // Simple scroll to bottom on page load
   window.addEventListener('load', function() {
     const log = document.getElementById('chat-messages-log');
@@ -244,12 +269,48 @@
     }
   });
 
-  document.getElementById('chat-send-form').addEventListener('submit', function() {
+  document.getElementById('chat-send-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-message-input');
+    const messageText = input ? input.value : '';
+    const log = document.getElementById('chat-messages-log');
+    
+    if (messageText.trim() !== '' && log) {
+        const newMsg = document.createElement('div');
+        newMsg.className = 'flex w-full justify-end';
+        newMsg.innerHTML = `
+            <div class="max-w-[75%] bg-indigo-600/75 text-white rounded-[20px] rounded-br-sm px-4 py-3 shadow-sm relative flex items-center gap-2 animate-fade-in-up">
+                <p class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(messageText)}</p>
+                <span class="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0"></span>
+            </div>
+        `;
+        log.appendChild(newMsg);
+        log.scrollTop = log.scrollHeight;
+    }
+    
     const submitBtn = document.getElementById('chat-send-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Sending...';
+      submitBtn.innerHTML = `
+        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      `;
     }
+    if (input) input.readOnly = true;
+
+    const form = document.getElementById('chat-send-form');
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: formData
+    }).then(response => {
+      window.location.href = response.url || window.location.href;
+    }).catch(error => {
+      console.error('Error submitting chat:', error);
+      window.location.reload();
+    });
   });
 </script>
 
@@ -325,12 +386,48 @@ function closeEmailModal() {
     document.getElementById('email-modal').classList.add('hidden');
 }
 
-document.getElementById('email-sender-form').addEventListener('submit', function() {
+function toggleMobileDetails() {
+    const content = document.getElementById('mobile-details-content');
+    const btnText = document.getElementById('toggle-details-text');
+    const btnIcon = document.getElementById('toggle-details-icon');
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        content.classList.add('flex');
+        btnText.textContent = 'Hide Details';
+        btnIcon.textContent = '✕';
+    } else {
+        content.classList.remove('flex');
+        content.classList.add('hidden');
+        btnText.textContent = 'Show Details';
+        btnIcon.textContent = 'ℹ️';
+    }
+}
+
+document.getElementById('email-sender-form').addEventListener('submit', function(e) {
+    e.preventDefault();
     const btn = document.getElementById('email-submit-btn');
     if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Sending...';
+        btn.innerHTML = `
+          <svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Sending Email...
+        `;
     }
+    const form = document.getElementById('email-sender-form');
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: formData
+    }).then(response => {
+      window.location.href = response.url || window.location.href;
+    }).catch(error => {
+      console.error('Error sending email:', error);
+      window.location.reload();
+    });
 });
 </script>
 

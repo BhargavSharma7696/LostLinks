@@ -1,6 +1,6 @@
 import email
 import database
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from pydantic import ValidationError
 import login_data
 from datetime import datetime
@@ -16,6 +16,10 @@ def index():
     if 'user_email' in session:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
+
+@app.route('/.well-known/assetlinks.json')
+def assetlinks():
+    return send_from_directory('.well-known', 'assetlinks.json', mimetype='application/json')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -13,8 +13,8 @@
       <!-- Mobile-friendly header with toggle button -->
       <div class="flex md:hidden items-center justify-between w-full border-b border-slate-200 pb-3 mb-1">
         <div class="min-w-0 flex-1 pr-2">
-          <h2 class="text-lg font-bold text-slate-800 truncate">{{ item.title }}</h2>
-          <span class="inline-block bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-indigo-100 uppercase tracking-wide mt-0.5">{{ item.status }}</span>
+          <h2 class="text-lg font-bold text-slate-800 break-words leading-tight">{{ item.title }}</h2>
+          <span class="inline-block bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-indigo-100 uppercase tracking-wide mt-1">{{ item.status }}</span>
         </div>
         <button id="toggle-details-btn" onclick="toggleMobileDetails()" class="shrink-0 text-xs font-bold text-primary bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-xl transition flex items-center gap-1 focus:outline-none">
           <span id="toggle-details-icon">ℹ️</span> <span id="toggle-details-text">Show Details</span>
@@ -236,12 +236,13 @@
             type="text" 
             name="message" 
             id="chat-message-input" 
-            class="flex-1 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder-slate-500" 
+            class="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder-slate-500" 
+            style="min-width: 0;"
             placeholder="Write a public message..." 
             required
             autocomplete="off"
           >
-          <button type="submit" id="chat-send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl px-6 py-3 transition shadow-md shadow-indigo-900/50">
+          <button type="submit" id="chat-send-btn" class="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl px-6 py-3 transition shadow-md shadow-indigo-900/50" style="flex-shrink: 0;">
             Send
           </button>
         </div>

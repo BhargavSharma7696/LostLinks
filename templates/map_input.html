@@ -19,11 +19,19 @@
   <p class="text-xs text-slate-400 mt-1 font-semibold">Click the input or pin icon 📍 to select coordinates on the campus map.</p>
 
   <!-- Map Picker Modal -->
+  <style>
+    .map-responsive-height { height: 300px; }
+    .sidebar-responsive-height { max-height: 350px; }
+    @media (min-width: 1024px) {
+      .map-responsive-height { height: 480px; }
+      .sidebar-responsive-height { height: 480px; max-height: 480px; }
+    }
+  </style>
   <div id="map-picker-modal" class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0" style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
-    <div id="map-picker-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-5xl overflow-hidden transform scale-95 transition-all duration-300">
+    <div id="map-picker-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-5xl flex flex-col overflow-hidden transform scale-95 transition-all duration-300" style="max-height: 95vh;">
       
       <!-- Modal Header -->
-      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center" style="flex-shrink: 0;">
         <div class="flex items-center gap-2">
           <span class="text-xl">🗺️</span>
           <div>
@@ -39,14 +47,14 @@
       </div>
 
       <!-- Modal Body (Map & Details Grid) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-12 w-full overflow-y-auto">
         <!-- Left: Leaflet Map (Col span 7) -->
-        <div class="lg:col-span-7 relative border-r border-slate-100">
-          <div id="map" class="w-full" style="height: 480px; min-height: 480px; position: relative;"></div>
+        <div class="lg:col-span-7 relative border-b lg:border-b-0 lg:border-r border-slate-100">
+          <div id="map" class="w-full map-responsive-height" style="position: relative;"></div>
         </div>
 
         <!-- Right: Location Details Sidebar (Col span 5) -->
-        <div class="lg:col-span-5 flex flex-col bg-slate-50/30 h-[480px] overflow-y-auto p-5 space-y-4">
+        <div class="lg:col-span-5 flex flex-col bg-slate-50/30 sidebar-responsive-height overflow-y-auto p-5 space-y-4">
           <!-- Selected Location Status -->
           <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
@@ -88,7 +96,7 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end gap-2 text-xs">
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end gap-2 text-xs shrink-0">
         <button type="button" onclick="closePickerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition">
           Cancel
         </button>

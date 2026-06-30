@@ -475,7 +475,7 @@ tools = [fetch_items, fetch_reported_by_user, fetch_items_nearby, make_report]
 tool_node = ToolNode(tools)
 
 def get_assistant_model():
-    key1 = os.getenv("gemini_key_1")
+    key1 = os.getenv("gemini_key") or os.getenv("GEMINI_API_KEY")
     key2 = os.getenv("gemini_key_2")
     key3 = os.getenv("gemini_key_3")
     
@@ -488,7 +488,7 @@ def get_assistant_model():
         models.append(ChatGoogleGenerativeAI(
             model="gemini-3.1-flash-lite",
             temperature=0.0,
-            google_api_key=k,
+            api_key=k,
             max_retries=3,
             timeout=30
         ))

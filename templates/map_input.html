@@ -10,36 +10,57 @@
     <input type="text" name="location" id="location" readonly
       class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition cursor-pointer font-medium"
       placeholder="{{ map_placeholder | default('Click to select location on map...') }}"
-      value="{{ item.location if item else '' }}" required
-      onclick="openPickerModal()" onfocus="openPickerModal()">
-    <button type="button" onclick="openPickerModal()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition text-lg focus:outline-none" title="Open Map Selector">
+      value="{{ item.location if item else '' }}" required onclick="openPickerModal()" onfocus="openPickerModal()">
+    <button type="button" onclick="openPickerModal()"
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition text-lg focus:outline-none"
+      title="Open Map Selector">
       📍
     </button>
   </div>
-  <p class="text-xs text-slate-400 mt-1 font-semibold">Click the input or pin icon 📍 to select coordinates on the campus map.</p>
+  <p class="text-xs text-slate-400 mt-1 font-semibold">Click the input or pin icon 📍 to select coordinates on the
+    campus map.</p>
 
   <!-- Map Picker Modal -->
   <style>
-    .map-responsive-height { height: 300px; }
-    .sidebar-responsive-height { max-height: 350px; }
+    .map-responsive-height {
+      height: 300px;
+    }
+
+    .sidebar-responsive-height {
+      max-height: 350px;
+    }
+
     @media (min-width: 1024px) {
-      .map-responsive-height { height: 480px; }
-      .sidebar-responsive-height { height: 480px; max-height: 480px; }
+      .map-responsive-height {
+        height: 480px;
+      }
+
+      .sidebar-responsive-height {
+        height: 480px;
+        max-height: 480px;
+      }
     }
   </style>
-  <div id="map-picker-modal" class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0" style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
-    <div id="map-picker-modal-card" class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-5xl flex flex-col overflow-hidden transform scale-95 transition-all duration-300" style="max-height: 95vh;">
-      
+  <div id="map-picker-modal"
+    class="fixed inset-0 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300 opacity-0"
+    style="z-index: 100; background-color: rgba(15, 23, 42, 0.6);" role="dialog" aria-modal="true">
+    <div id="map-picker-modal-card"
+      class="bg-white rounded-[24px] shadow-2xl border border-slate-100 w-full max-w-5xl flex flex-col overflow-hidden transform scale-95 transition-all duration-300"
+      style="max-height: 95vh;">
+
       <!-- Modal Header -->
-      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center" style="flex-shrink: 0;">
+      <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center"
+        style="flex-shrink: 0;">
         <div class="flex items-center gap-2">
           <span class="text-xl">🗺️</span>
           <div>
             <h3 class="font-bold text-slate-800 text-base">Select Location</h3>
-            <p class="text-xs text-slate-400 font-medium">Click on the map or choose a landmark, then specify details</p>
+            <p class="text-xs text-slate-400 font-medium">Click on the map or choose a landmark, then specify details
+            </p>
           </div>
         </div>
-        <button type="button" onclick="closePickerModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none">
+        <button type="button" onclick="closePickerModal()"
+          class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition focus:outline-none">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -47,14 +68,14 @@
       </div>
 
       <!-- Modal Body (Map & Details Grid) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 w-full overflow-y-auto">
-        <!-- Left: Leaflet Map (Col span 7) -->
-        <div class="lg:col-span-7 relative border-b lg:border-b-0 lg:border-r border-slate-100">
+      <div class="grid grid-cols-1 w-full overflow-y-auto">
+        <!-- Top: Leaflet Map -->
+        <div class="relative border-b border-slate-100">
           <div id="map" class="w-full map-responsive-height" style="position: relative;"></div>
         </div>
 
-        <!-- Right: Location Details Sidebar (Col span 5) -->
-        <div class="lg:col-span-5 flex flex-col bg-slate-50/30 sidebar-responsive-height overflow-y-auto p-5 space-y-4">
+        <!-- Bottom: Location Details Sidebar -->
+        <div class="flex flex-col bg-slate-50/30 sidebar-responsive-height overflow-y-auto p-5 space-y-4">
           <!-- Selected Location Status -->
           <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
@@ -63,12 +84,14 @@
                 Selected Location:
               </span>
             </div>
-            <div id="picker-selected-value" class="text-sm font-extrabold text-indigo-600 break-words select-all">None</div>
+            <div id="picker-selected-value" class="text-sm font-extrabold text-indigo-600 break-words select-all">None
+            </div>
           </div>
 
           <!-- Floor Selector Section -->
           <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm" id="floor-section">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Floor / Area</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Floor /
+              Area</label>
             <div class="flex flex-wrap gap-1.5" id="floor-pills">
               <!-- JS will generate pills -->
             </div>
@@ -76,10 +99,11 @@
 
           <!-- Room / Office Selector Section -->
           <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm" id="room-section">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" id="room-label">Specific Room / Office</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" id="room-label">Specific
+              Room / Office</label>
             <!-- Custom Room Input -->
             <div class="relative">
-              <input type="text" id="custom-room-input" 
+              <input type="text" id="custom-room-input"
                 class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                 placeholder="e.g. Room 304, Cafe, Library...">
             </div>
@@ -97,10 +121,12 @@
 
       <!-- Modal Footer -->
       <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end gap-2 text-xs shrink-0">
-        <button type="button" onclick="closePickerModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition">
+        <button type="button" onclick="closePickerModal()"
+          class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition">
           Cancel
         </button>
-        <button type="button" onclick="confirmPickerLocation()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl transition shadow-md shadow-indigo-100">
+        <button type="button" onclick="confirmPickerLocation()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl transition shadow-md shadow-indigo-100">
           Confirm Location
         </button>
       </div>
@@ -117,7 +143,7 @@
     const floorPillsContainer = document.getElementById('floor-pills');
     const roomChipsContainer = document.getElementById('room-chips');
     const customRoomInput = document.getElementById('custom-room-input');
-    
+
     const campusCenter = [21.2425, 81.3175];
     let map = null;
     let selectedMarker = null;
@@ -381,7 +407,7 @@
     function renderFloorPills(landmarkName) {
       floorPillsContainer.innerHTML = '';
       const subFloors = getSublocationsForLandmark(landmarkName);
-      
+
       const floorSection = document.getElementById('floor-section');
       if (subFloors.length === 0) {
         if (floorSection) floorSection.classList.add('hidden');
@@ -394,11 +420,10 @@
       subFloors.forEach(floor => {
         const pill = document.createElement('button');
         pill.type = 'button';
-        pill.className = `px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all duration-200 ${
-          selectedFloor === floor 
-            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
+        pill.className = `px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all duration-200 ${selectedFloor === floor
+            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
-        }`;
+          }`;
         pill.textContent = floor;
         pill.addEventListener('click', () => {
           if (selectedFloor === floor) {
@@ -415,11 +440,10 @@
       // Add N/A option
       const naPill = document.createElement('button');
       naPill.type = 'button';
-      naPill.className = `px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all duration-200 ${
-        selectedFloor === "N/A" 
-          ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
+      naPill.className = `px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all duration-200 ${selectedFloor === "N/A"
+          ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
           : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
-      }`;
+        }`;
       naPill.textContent = "N/A";
       naPill.addEventListener('click', () => {
         selectedFloor = "N/A";
@@ -494,10 +518,10 @@
       pickerSelectedValue.className = "text-sm font-extrabold text-indigo-600 break-words select-all";
     }
 
-    window.openPickerModal = function() {
+    window.openPickerModal = function () {
       pickerModal.classList.remove('hidden');
       pickerModal.classList.add('flex');
-      
+
       // Initialize map on first open
       if (!map) {
         initializePickerMap();
@@ -514,7 +538,7 @@
       setTimeout(() => {
         if (map) {
           map.invalidateSize();
-          
+
           // Preload existing value into map if exists
           const val = locationInput.value;
           if (val) {
@@ -529,7 +553,7 @@
             renderFloorPills(matchedLandmark);
             updateDetailsVisibility();
             updatePickerSelectedValue();
-            
+
             // Try matching coordinates or landmarks to place pin
             const match = landmarks.find(l => selectedBaseLocation.toLowerCase().includes(l.name.toLowerCase()));
             if (match) {
@@ -559,7 +583,7 @@
       }, 310);
     };
 
-    window.closePickerModal = function() {
+    window.closePickerModal = function () {
       pickerModal.classList.remove('opacity-100');
       pickerModal.classList.add('opacity-0');
       pickerCard.classList.remove('scale-100');
@@ -570,7 +594,7 @@
       }, 300);
     };
 
-    window.confirmPickerLocation = function() {
+    window.confirmPickerLocation = function () {
       if (tempSelectedLocation) {
         locationInput.value = tempSelectedLocation;
         // Interactive UI flash feedback on input field
